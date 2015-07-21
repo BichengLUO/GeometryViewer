@@ -3,6 +3,8 @@ Simple Polygon & Mesh Viewer
 
 This is an MFC program for viewing simple polygon and its mesh. It's actually used for Computational Geometry class, but it is better if you use it as a handy tool for research or project.
 
+![SimplePolygonMeshViewer](/images/screenshot.png)
+
 Format Requirement
 ------------------
 A simple polygon should be described as a set of points. Each point consists of two coordinates, x and y and every point occupies one line. The polygon file format should be like this:
