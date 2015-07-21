@@ -3,7 +3,7 @@ Simple Polygon & Mesh Viewer
 
 This is an MFC program for viewing simple polygon and its mesh. It's actually used for Computational Geometry class, but it is better if you use it as a handy tool for research or project.
 
-![SimplePolygonMeshViewer](/images/screenshot.png)
+![SimplePolygonMeshViewer](/images/screenshot.PNG)
 
 Format Requirement
 ------------------
