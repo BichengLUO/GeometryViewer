@@ -27,7 +27,7 @@ A scene contains various kinds of geometric objects such as lines, rays and segm
 
 Intersection Format Requirement
 ------------------
-The format of intersections is quite simple, which is just a list of intersection points. Each intersection point occupied one line, formatting as "[p.x] [p.y]" like this:
+The format of intersections is quite simple, which is just a list of intersection points. Each intersection point occupied one line, formatting as `[p.x] [p.y]` like this:
 
 > 79.7224 45.9439
 
