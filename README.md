@@ -1,11 +1,24 @@
+Intersection Viewer
+===============================
+
+This is an MFC program for viewing complex scenes filled with lines, rays, segments and circles as well as their intersection points. It's actually used for Computational Geometry class, but it is better if you use it as a handy tool for research or project.
+
+![SimplePolygonMeshViewer](/images/intersection_viewer.PNG)
+
+Scene Format Requirement
+------------------
+
+Intersection Format Requirement
+------------------
+
 Simple Polygon & Mesh Viewer
 ===============================
 
 This is an MFC program for viewing simple polygon and its mesh. It's actually used for Computational Geometry class, but it is better if you use it as a handy tool for research or project.
 
-![SimplePolygonMeshViewer](/images/screenshot.PNG)
+![SimplePolygonMeshViewer](/images/simple_polygon_mesh_viewer.PNG)
 
-Format Requirement
+Simple Polygon Format Requirement
 ------------------
 A simple polygon should be described as a set of points. Each point consists of two coordinates, x and y and every point occupies one line. The polygon file format should be like this:
 > 116.118 99.6337
@@ -26,6 +39,8 @@ A simple polygon should be described as a set of points. Each point consists of 
 
 > ......
 
+Mesh Format Requirement
+------------------
 A mesh should be described as a set of triangles. Regardless of steiner points, every point in triangles can be named according to its index. Thus, the mesh file format should be like this:
 > 19 22 18
 
