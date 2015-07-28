@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplePolygonViewer", "Geom
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IntersectionViewer", "IntersectionViewer\IntersectionViewer.vcxproj", "{F305985F-23DE-49C8-81D0-4671A2853A3E}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ConvexHullViewer", "ConvexHullViewer\ConvexHullViewer.vcxproj", "{BF8B4AC9-FDA7-4CE7-B23B-FC4738E54470}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -21,6 +23,10 @@ Global
 		{F305985F-23DE-49C8-81D0-4671A2853A3E}.Debug|Win32.Build.0 = Debug|Win32
 		{F305985F-23DE-49C8-81D0-4671A2853A3E}.Release|Win32.ActiveCfg = Release|Win32
 		{F305985F-23DE-49C8-81D0-4671A2853A3E}.Release|Win32.Build.0 = Release|Win32
+		{BF8B4AC9-FDA7-4CE7-B23B-FC4738E54470}.Debug|Win32.ActiveCfg = Debug|Win32
+		{BF8B4AC9-FDA7-4CE7-B23B-FC4738E54470}.Debug|Win32.Build.0 = Debug|Win32
+		{BF8B4AC9-FDA7-4CE7-B23B-FC4738E54470}.Release|Win32.ActiveCfg = Release|Win32
+		{BF8B4AC9-FDA7-4CE7-B23B-FC4738E54470}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
