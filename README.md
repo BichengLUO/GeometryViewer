@@ -4,6 +4,40 @@ This is an MFC program for viewing points and their convex hull. It's actually u
 
 ![ConvexHullViewer](/images/convex_hull_viewer.PNG)
 
+Points Format Requirement
+------------------
+The format of point is quite simple. Each point occupied one line, formatting as `[p.x] [p.y]` like this:
+
+> 116.118 99.6337
+
+> 112.181 105.222
+
+> 109.212 105.154
+
+> 107.377 106.332
+
+> ......
+
+Convex Hull Format Requirement
+------------------
+The format of convex hull is a list of point index which occupied one line. The example will be like:
+
+> 39
+
+> 4
+
+> 5
+
+> 6
+
+> 15
+
+> 16
+
+> 23
+
+> ......
+
 Intersection Viewer
 ===============================
 
@@ -31,6 +65,8 @@ A scene contains various kinds of geometric objects such as lines, rays and segm
 
 > C 67.2842 26.9326 21.5706
 
+> ......
+
 Intersection Format Requirement
 ------------------
 The format of intersections is quite simple, which is just a list of intersection points. Each intersection point occupied one line, formatting as `[p.x] [p.y]` like this:
@@ -46,6 +82,8 @@ The format of intersections is quite simple, which is just a list of intersectio
 > 51.2919 38.1724
 
 > 25.2063 59.0439
+
+> ......
 
 Simple Polygon & Mesh Viewer
 ===============================
