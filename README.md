@@ -1,9 +1,15 @@
+Convex Hull Viewer
+===============================
+This is an MFC program for viewing points and their convex hull. It's actually used for Computational Geometry class, but it is better if you use it as a handy tool for research or project.
+
+![ConvexHullViewer](/images/convex_hull_viewer.PNG)
+
 Intersection Viewer
 ===============================
 
 This is an MFC program for viewing complex scenes filled with lines, rays, segments and circles as well as their intersection points. It's actually used for Computational Geometry class, but it is better if you use it as a handy tool for research or project.
 
-![SimplePolygonMeshViewer](/images/intersection_viewer.PNG)
+![IntersectionViewer](/images/intersection_viewer.PNG)
 
 Scene Format Requirement
 ------------------
