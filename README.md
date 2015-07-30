@@ -32,10 +32,6 @@ The format of convex hull is a list of point index which occupied one line. The 
 
 > 15
 
-> 16
-
-> 23
-
 > ......
 
 Intersection Viewer
@@ -129,3 +125,9 @@ A mesh should be described as a set of triangles. Regardless of steiner points, 
 > ......
 
 > **Note:** The index of the point starts from 0 instead of 1
+
+Windowing Query Viewer
+===============================
+Windowing query viewer can help us view the axis-parallel segments and some windowing queries. It's actually used for Computational Geometry class, but it is better if you use it as a handy tool for research or project.
+
+![WindowingQueryViewer](/images/windowing_query_viewer.PNG)
