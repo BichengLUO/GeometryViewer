@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IntersectionViewer", "Inter
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ConvexHullViewer", "ConvexHullViewer\ConvexHullViewer.vcxproj", "{BF8B4AC9-FDA7-4CE7-B23B-FC4738E54470}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WindowingQueryViewer", "WindowingQueryViewer\WindowingQueryViewer.vcxproj", "{45DDE7CE-3EE8-4B28-BE3F-D605BCF6076F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -27,6 +29,10 @@ Global
 		{BF8B4AC9-FDA7-4CE7-B23B-FC4738E54470}.Debug|Win32.Build.0 = Debug|Win32
 		{BF8B4AC9-FDA7-4CE7-B23B-FC4738E54470}.Release|Win32.ActiveCfg = Release|Win32
 		{BF8B4AC9-FDA7-4CE7-B23B-FC4738E54470}.Release|Win32.Build.0 = Release|Win32
+		{45DDE7CE-3EE8-4B28-BE3F-D605BCF6076F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{45DDE7CE-3EE8-4B28-BE3F-D605BCF6076F}.Debug|Win32.Build.0 = Debug|Win32
+		{45DDE7CE-3EE8-4B28-BE3F-D605BCF6076F}.Release|Win32.ActiveCfg = Release|Win32
+		{45DDE7CE-3EE8-4B28-BE3F-D605BCF6076F}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
