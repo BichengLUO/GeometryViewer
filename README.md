@@ -131,3 +131,14 @@ Windowing Query Viewer
 Windowing query viewer can help us view the axis-parallel segments and some windowing queries. It's actually used for Computational Geometry class, but it is better if you use it as a handy tool for research or project.
 
 ![WindowingQueryViewer](/images/windowing_query_viewer.PNG)
+
+Axis-parallel Segments and Windowing Queries Format Requirement
+--------------------------
+The input file starts with the number of axis-parallel segments and the number of windowing queries in the first line, like `m n`. Then, `m` lines stand for axis-parallel segments, which have the format like `[p.x] [p.y] [len] [ori]`. `[p.x] [p.y]` represent the start point of the segment. `[len]` refers to the length of the segment and `[ori]` indicates the orientation of the segment.
+
+`[ori]` | meaning
+--------|---------
+0| Up
+1| Down
+2| Left
+3| Right
