@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WindowingQueryViewer", "Win
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RoomViewer", "RoomViewer\RoomViewer.vcxproj", "{BAE2FFCE-B10F-40CB-9249-51BB363724CC}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PartyViewer", "PartyViewer\PartyViewer.vcxproj", "{87B1E9DA-A769-495E-A28D-4AF8D651FDCD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -39,6 +41,10 @@ Global
 		{BAE2FFCE-B10F-40CB-9249-51BB363724CC}.Debug|Win32.Build.0 = Debug|Win32
 		{BAE2FFCE-B10F-40CB-9249-51BB363724CC}.Release|Win32.ActiveCfg = Release|Win32
 		{BAE2FFCE-B10F-40CB-9249-51BB363724CC}.Release|Win32.Build.0 = Release|Win32
+		{87B1E9DA-A769-495E-A28D-4AF8D651FDCD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{87B1E9DA-A769-495E-A28D-4AF8D651FDCD}.Debug|Win32.Build.0 = Debug|Win32
+		{87B1E9DA-A769-495E-A28D-4AF8D651FDCD}.Release|Win32.ActiveCfg = Release|Win32
+		{87B1E9DA-A769-495E-A28D-4AF8D651FDCD}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
