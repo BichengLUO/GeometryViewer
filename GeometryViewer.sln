@@ -15,6 +15,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RoomViewer", "RoomViewer\Ro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PartyViewer", "PartyViewer\PartyViewer.vcxproj", "{87B1E9DA-A769-495E-A28D-4AF8D651FDCD}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WallsViewer", "WallsViewer\WallsViewer.vcxproj", "{A2A76138-0F80-4BE8-A382-4909944D1853}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -45,6 +47,10 @@ Global
 		{87B1E9DA-A769-495E-A28D-4AF8D651FDCD}.Debug|Win32.Build.0 = Debug|Win32
 		{87B1E9DA-A769-495E-A28D-4AF8D651FDCD}.Release|Win32.ActiveCfg = Release|Win32
 		{87B1E9DA-A769-495E-A28D-4AF8D651FDCD}.Release|Win32.Build.0 = Release|Win32
+		{A2A76138-0F80-4BE8-A382-4909944D1853}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A2A76138-0F80-4BE8-A382-4909944D1853}.Debug|Win32.Build.0 = Debug|Win32
+		{A2A76138-0F80-4BE8-A382-4909944D1853}.Release|Win32.ActiveCfg = Release|Win32
+		{A2A76138-0F80-4BE8-A382-4909944D1853}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
