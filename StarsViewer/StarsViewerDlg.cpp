@@ -227,18 +227,31 @@ void CStarsViewerDlg::OnPaint()
 			memDC.SelectObject(pOldBrush);
 		}
 
-		CPen pen1(PS_SOLID, 1, RGB(0, 0, 0));
-		pOldPen = memDC.SelectObject(&pen1);
-		CBrush brush1(RGB(255, 100, 100));
-		pOldBrush = memDC.SelectObject(&brush1);
+		CPen pen1(PS_SOLID, 2, RGB(0, 0, 0));
+		CBrush brush1(RGB(100, 100, 255));
+		CPen pen4(PS_SOLID, 1, RGB(0, 0, 0));
+		CBrush brush4(RGB(255, 100, 100));
 		for (int i = 0; i < stars.size(); i++)
 		{
+			if (selected != -1 && selected < queries_result.size() &&
+				queries_result[selected].find(i) != queries_result[selected].end())
+			{
+				pOldPen = memDC.SelectObject(&pen1);
+				pOldBrush = memDC.SelectObject(&brush1);
+			}
+			else
+			{
+				pOldPen = memDC.SelectObject(&pen4);
+				pOldBrush = memDC.SelectObject(&brush4);
+			}
+
 			double x = scale_dim_x(stars[i].x);
 			double y = scale_dim_y(stars[i].y);
 			memDC.Ellipse(x - 3, y - 3, x + 3, y + 3);
+
+			memDC.SelectObject(pOldPen);
+			memDC.SelectObject(pOldBrush);
 		}
-		memDC.SelectObject(pOldPen);
-		memDC.SelectObject(pOldBrush);
 
 		dc.BitBlt(r.left, r.top, r.right, r.bottom, &memDC, 0, 0, SRCCOPY);
 		memDC.SelectObject(pOldBmp);
@@ -255,6 +268,7 @@ double CStarsViewerDlg::scale_dim_x(double v)
 
 double CStarsViewerDlg::scale_dim_y(double v)
 {
+	v = 800 - v;
 	return transform.y + 20 - 250 * (scale - 1.0) + 500 * scale * (v - dim_min) / (dim_max - dim_min);
 }
 
@@ -333,6 +347,24 @@ void CStarsViewerDlg::OnBnClickedButtonOpenResults()
 		NULL);
 	if (dlg.DoModal() == IDOK)
 	{
+		queries_result.clear();
+		std::ifstream input(dlg.GetPathName(), std::ifstream::in);
+		std::string line;
+		for (int i = 0; i < segments.size(); i++)
+		{
+			std::getline(input, line);
+			std::set<int> ind_set;
+			if (line[0] == 'N')
+				queries_result.push_back(ind_set);
+			else
+			{
+				std::istringstream iss(line);
+				int index;
+				while (iss >> index)
+					ind_set.insert(index);
+				queries_result.push_back(ind_set);
+			}
+		}
 	}
 	else
 		return;
