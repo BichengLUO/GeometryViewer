@@ -54,4 +54,5 @@ public:
 	bool to_left(point2d p1, point2d p2, point2d p3);
 	bool to_left_on(point2d p1, point2d p2, point2d p3);
 	afx_msg void OnBnClickedCheckShowUpperHull();
+	afx_msg void OnBnClickedButtonUndo();
 };

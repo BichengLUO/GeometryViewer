@@ -68,6 +68,7 @@ BEGIN_MESSAGE_MAP(CGreatWallDlg, CDialogEx)
 	ON_WM_LBUTTONDOWN()
 	ON_WM_ERASEBKGND()
 	ON_BN_CLICKED(IDC_CHECK_SHOW_UPPER_HULL, &CGreatWallDlg::OnBnClickedCheckShowUpperHull)
+	ON_BN_CLICKED(IDC_BUTTON_UNDO, &CGreatWallDlg::OnBnClickedButtonUndo)
 END_MESSAGE_MAP()
 
 
@@ -330,5 +331,15 @@ void CGreatWallDlg::OnBnClickedCheckShowUpperHull()
 		show_upper_hull = TRUE;
 	else
 		show_upper_hull = FALSE;
+	redraw();
+}
+
+
+void CGreatWallDlg::OnBnClickedButtonUndo()
+{
+	// TODO:  在此添加控件通知处理程序代码
+	pts.pop_back();
+	generate_guardians();
+
 	redraw();
 }
