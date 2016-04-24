@@ -65,6 +65,7 @@ BEGIN_MESSAGE_MAP(CGreatWallDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_CHECK_SHOW_GUARDIANS, &CGreatWallDlg::OnBnClickedCheckShowGuardians)
 	ON_BN_CLICKED(IDC_BUTTON_CLEAR, &CGreatWallDlg::OnBnClickedButtonClear)
 	ON_WM_LBUTTONDOWN()
+	ON_WM_ERASEBKGND()
 END_MESSAGE_MAP()
 
 
@@ -142,16 +143,35 @@ void CGreatWallDlg::OnPaint()
 	}
 	else
 	{
-		CPaintDC dc(this);
-		Graphics graphics(dc.m_hDC);
-		graphics.SetSmoothingMode(SmoothingMode::SmoothingModeAntiAlias);
-
+		CRect rect;
+		GetClientRect(&rect);
 		Pen pen(Color::Black);
 		SolidBrush brush_red(Color::Red);
 		SolidBrush brush_black(Color::Black);
+		SolidBrush brush_aqua(Color::Aqua);
+		SolidBrush brush_white(Color::White);
+
+		Bitmap *pMemBitmap = new Bitmap(rect.Width(), rect.Height() - 50);
+		Graphics* pMemGraphics = Graphics::FromImage(pMemBitmap);
+		pMemGraphics->SetSmoothingMode(SmoothingMode::SmoothingModeAntiAlias);
+		pMemGraphics->FillRectangle(&brush_white, 0, 0, rect.Width(), rect.Height() - 50);
+
+		CPaintDC dc(this);
+		Graphics graphics(dc.m_hDC);
 
 		if (pts.size() > 0)
 		{
+			if (pts.size() > 1)
+			{
+				Point *array = new Point[pts.size() + 2];
+				for (int i = 0; i < pts.size(); i++)
+					array[i] = Point(pts[i].x, pts[i].y);
+				array[pts.size()] = Point(array[pts.size() - 1].X, 800);
+				array[pts.size() + 1] = Point(array[0].X, 800);
+				pMemGraphics->FillPolygon(&brush_aqua, array, pts.size() + 2);
+				delete[] array;
+			}
+
 			for (int i = 0; i < pts.size() - 1; i++)
 			{
 				double x = pts[i].x;
@@ -160,13 +180,16 @@ void CGreatWallDlg::OnPaint()
 				double nx = pts[i + 1].x;
 				double ny = pts[i + 1].y;
 
-				graphics.FillEllipse(&brush_black, x - 5, y - 5, 10, 10);
-				graphics.DrawLine(&pen, (INT)x, (INT)y, (INT)nx, (INT)ny);
+				pMemGraphics->FillEllipse(&brush_black, x - 3, y - 3, 6, 6);
+				pMemGraphics->DrawLine(&pen, (INT)x, (INT)y, (INT)nx, (INT)ny);
 			}
 
 			double x = pts[pts.size() - 1].x;
 			double y = pts[pts.size() - 1].y;
-			graphics.FillEllipse(&brush_red, x - 8, y - 8, 16, 16);
+			pMemGraphics->FillEllipse(&brush_red, x - 5, y - 5, 10, 10);
+
+			graphics.DrawImage(pMemBitmap, 0, 0);
+			delete pMemGraphics;
 		}
 	}
 }
@@ -198,7 +221,17 @@ void CGreatWallDlg::OnLButtonDown(UINT nFlags, CPoint point)
 	if (pts.size() == 0 || point.x > pts[pts.size() - 1].x)
 	{
 		pts.push_back(point2d(point.x, point.y));
-		Invalidate();
+		CRect rect;
+		GetClientRect(&rect);
+		rect.bottom -= 50;
+		InvalidateRect(rect);
 	}
 	CDialogEx::OnLButtonDown(nFlags, point);
+}
+
+
+BOOL CGreatWallDlg::OnEraseBkgnd(CDC* pDC)
+{
+	// TODO:  在此添加消息处理程序代码和/或调用默认值
+	return TRUE;
 }

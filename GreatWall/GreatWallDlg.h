@@ -43,4 +43,5 @@ public:
 	afx_msg void OnBnClickedCheckShowGuardians();
 	afx_msg void OnBnClickedButtonClear();
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 };
