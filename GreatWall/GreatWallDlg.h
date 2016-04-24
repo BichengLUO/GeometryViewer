@@ -29,8 +29,10 @@ public:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 支持
 	points pts;
 	guardians gds;
+	std::vector<int> hull;
 	BOOL first_run;
 	BOOL show_guardians;
+	BOOL show_upper_hull;
 
 // 实现
 protected:
@@ -51,4 +53,5 @@ public:
 	void generate_guardians();
 	bool to_left(point2d p1, point2d p2, point2d p3);
 	bool to_left_on(point2d p1, point2d p2, point2d p3);
+	afx_msg void OnBnClickedCheckShowUpperHull();
 };

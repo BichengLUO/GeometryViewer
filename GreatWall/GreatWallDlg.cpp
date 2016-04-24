@@ -67,6 +67,7 @@ BEGIN_MESSAGE_MAP(CGreatWallDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_CLEAR, &CGreatWallDlg::OnBnClickedButtonClear)
 	ON_WM_LBUTTONDOWN()
 	ON_WM_ERASEBKGND()
+	ON_BN_CLICKED(IDC_CHECK_SHOW_UPPER_HULL, &CGreatWallDlg::OnBnClickedCheckShowUpperHull)
 END_MESSAGE_MAP()
 
 
@@ -103,6 +104,7 @@ BOOL CGreatWallDlg::OnInitDialog()
 
 	// TODO:  在此添加额外的初始化代码
 	show_guardians = FALSE;
+	show_upper_hull = FALSE;
 	first_run = TRUE;
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -148,6 +150,8 @@ void CGreatWallDlg::OnPaint()
 		CRect rect;
 		GetClientRect(&rect);
 		Pen pen(Color::Black);
+		Pen dash_pen(Color::Red, 3);
+		dash_pen.SetDashStyle(DashStyleDash);
 		SolidBrush brush_red(Color::Red);
 		SolidBrush brush_black(Color::Black);
 		SolidBrush brush_aqua(Color::Aqua);
@@ -178,7 +182,18 @@ void CGreatWallDlg::OnPaint()
 				pMemGraphics->FillPolygon(&brush_aqua, array, pts.size() + 2);
 				delete[] array;
 			}
+			if (show_upper_hull)
+			{
+				for (int i = 0; i < hull.size() - 1; i++)
+				{
+					int x = pts[hull[i]].x;
+					int y = pts[hull[i]].y;
+					int nx = pts[hull[i + 1]].x;
+					int ny = pts[hull[i + 1]].y;
 
+					pMemGraphics->DrawLine(&dash_pen, x, y, nx, ny);
+				}
+			}
 			for (int i = 0; i < pts.size() - 1; i++)
 			{
 				int x = pts[i].x;
@@ -269,7 +284,7 @@ BOOL CGreatWallDlg::OnEraseBkgnd(CDC* pDC)
 
 void CGreatWallDlg::generate_guardians()
 {
-	std::vector<int> hull;
+	hull.clear();
 	gds.clear();
 	int last = pts.size() - 1;
 	hull.push_back(last);
@@ -292,4 +307,15 @@ bool CGreatWallDlg::to_left(point2d p1, point2d p2, point2d p3)
 bool CGreatWallDlg::to_left_on(point2d p1, point2d p2, point2d p3)
 {
 	return (p3.x - p1.x) * (p2.y - p1.y) - (p2.x - p1.x) * (p3.y - p1.y) >= 0;
+}
+
+
+void CGreatWallDlg::OnBnClickedCheckShowUpperHull()
+{
+	// TODO:  在此添加控件通知处理程序代码
+	if (((CButton*)GetDlgItem(IDC_CHECK_SHOW_UPPER_HULL))->GetCheck())
+		show_upper_hull = TRUE;
+	else
+		show_upper_hull = FALSE;
+	redraw();
 }
