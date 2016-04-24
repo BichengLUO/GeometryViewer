@@ -154,7 +154,7 @@ void CGreatWallDlg::OnPaint()
 		dash_pen.SetDashStyle(DashStyleDash);
 		SolidBrush brush_red(Color::Red);
 		SolidBrush brush_black(Color::Black);
-		SolidBrush brush_aqua(Color::Aqua);
+		LinearGradientBrush brush_aqua(Rect(0, 0, rect.Width(), rect.Height()), Color::Aqua, Color::Blue, LinearGradientModeHorizontal);
 		SolidBrush brush_white(Color::White);
 
 		Bitmap pMemBitmap(rect.Width(), rect.Height() - 50);
@@ -194,21 +194,21 @@ void CGreatWallDlg::OnPaint()
 					pMemGraphics->DrawLine(&dash_pen, x, y, nx, ny);
 				}
 			}
-			for (int i = 0; i < pts.size() - 1; i++)
+
+			double x = pts[0].x;
+			double y = pts[0].y;
+			pMemGraphics->FillEllipse(&brush_red, x - 5, y - 5, 10, 10);
+			for (int i = 1; i < pts.size(); i++)
 			{
 				int x = pts[i].x;
 				int y = pts[i].y;
 
-				int nx = pts[i + 1].x;
-				int ny = pts[i + 1].y;
+				int nx = pts[i - 1].x;
+				int ny = pts[i - 1].y;
 
 				pMemGraphics->FillEllipse(&brush_black, x - 3, y - 3, 6, 6);
 				pMemGraphics->DrawLine(&pen, x, y, nx, ny);
 			}
-
-			double x = pts[pts.size() - 1].x;
-			double y = pts[pts.size() - 1].y;
-			pMemGraphics->FillEllipse(&brush_red, x - 5, y - 5, 10, 10);
 
 			if (show_guardians)
 			{
@@ -265,7 +265,7 @@ void CGreatWallDlg::OnBnClickedButtonClear()
 void CGreatWallDlg::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	// TODO:  在此添加消息处理程序代码和/或调用默认值
-	if (pts.size() == 0 || point.x > pts[pts.size() - 1].x)
+	if (pts.size() == 0 || point.x < pts[pts.size() - 1].x)
 	{
 		pts.push_back(point2d(point.x, point.y));
 		generate_guardians();
@@ -286,15 +286,14 @@ void CGreatWallDlg::generate_guardians()
 {
 	hull.clear();
 	gds.clear();
-	int last = pts.size() - 1;
-	hull.push_back(last);
-	gds.push_back(last);
-	for (int i = last - 1; i > 0; i--)
+	hull.push_back(0);
+	gds.push_back(0);
+	for (int i = 1; i < pts.size() - 1; i++)
 	{
-		while (hull.size() > 1 && to_left_on(pts[hull.end()[-1]], pts[hull.end()[-2]], pts[i]))
+		while (hull.size() > 1 && !to_left_on(pts[hull.end()[-2]], pts[hull.end()[-1]], pts[i]))
 			hull.pop_back();
 		hull.push_back(i);
-		if (to_left(pts[hull.end()[-2]], pts[hull.end()[-1]], pts[i - 1]))
+		if (to_left(pts[hull.end()[-2]], pts[hull.end()[-1]], pts[i + 1]))
 			gds.push_back(i);
 	}
 }
