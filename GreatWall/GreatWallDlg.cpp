@@ -150,8 +150,10 @@ void CGreatWallDlg::OnPaint()
 		CRect rect;
 		GetClientRect(&rect);
 		Pen pen(Color::Black);
-		Pen dash_pen(Color::Red, 3);
-		dash_pen.SetDashStyle(DashStyleDash);
+		Pen dash_pen_red(Color::Red, 3);
+		dash_pen_red.SetDashStyle(DashStyleDash);
+		Pen dash_pen_orange(Color::Orange, 3);
+		dash_pen_orange.SetDashStyle(DashStyleDash);
 		SolidBrush brush_red(Color::Red);
 		SolidBrush brush_black(Color::Black);
 		LinearGradientBrush brush_aqua(Rect(0, 0, rect.Width(), rect.Height()), Color::Aqua, Color::Blue, LinearGradientModeHorizontal);
@@ -191,7 +193,19 @@ void CGreatWallDlg::OnPaint()
 					int nx = pts[hull[i + 1]].x;
 					int ny = pts[hull[i + 1]].y;
 
-					pMemGraphics->DrawLine(&dash_pen, x, y, nx, ny);
+					pMemGraphics->DrawLine(&dash_pen_red, x, y, nx, ny);
+				}
+				if (hull.size() > 1)
+				{
+					int lx = pts[hull.end()[-2]].x;
+					int ly = pts[hull.end()[-2]].y;
+					int x = pts[hull.end()[-1]].x;
+					int y = pts[hull.end()[-1]].y;
+					double len = sqrt((x - lx)*(x - lx) + (y - ly)*(y - ly));
+					int nx = x + 60 * (x - lx) / len;
+					int ny = y + 60 * (y - ly) / len;
+
+					pMemGraphics->DrawLine(&dash_pen_orange, x, y, nx, ny);
 				}
 			}
 
