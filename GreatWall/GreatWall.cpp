@@ -103,5 +103,5 @@ BOOL CGreatWallApp::InitInstance()
 int CGreatWallApp::ExitInstance()
 {
 	GdiplusShutdown(gdiplusToken);
-	return CGreatWallApp::ExitInstance();
+	return CWinApp::ExitInstance();
 }

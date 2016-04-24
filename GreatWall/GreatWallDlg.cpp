@@ -6,6 +6,7 @@
 #include "GreatWall.h"
 #include "GreatWallDlg.h"
 #include "afxdialogex.h"
+#include <stack>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -101,7 +102,8 @@ BOOL CGreatWallDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO:  在此添加额外的初始化代码
-
+	show_guardians = FALSE;
+	first_run = TRUE;
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
@@ -151,14 +153,19 @@ void CGreatWallDlg::OnPaint()
 		SolidBrush brush_aqua(Color::Aqua);
 		SolidBrush brush_white(Color::White);
 
-		Bitmap *pMemBitmap = new Bitmap(rect.Width(), rect.Height() - 50);
-		Graphics* pMemGraphics = Graphics::FromImage(pMemBitmap);
+		Bitmap pMemBitmap(rect.Width(), rect.Height() - 50);
+		Graphics* pMemGraphics = Graphics::FromImage(&pMemBitmap);
 		pMemGraphics->SetSmoothingMode(SmoothingMode::SmoothingModeAntiAlias);
 		pMemGraphics->FillRectangle(&brush_white, 0, 0, rect.Width(), rect.Height() - 50);
 
 		CPaintDC dc(this);
 		Graphics graphics(dc.m_hDC);
 
+		if (first_run)
+		{
+			first_run = FALSE;
+			return;
+		}
 		if (pts.size() > 0)
 		{
 			if (pts.size() > 1)
@@ -174,23 +181,33 @@ void CGreatWallDlg::OnPaint()
 
 			for (int i = 0; i < pts.size() - 1; i++)
 			{
-				double x = pts[i].x;
-				double y = pts[i].y;
+				int x = pts[i].x;
+				int y = pts[i].y;
 
-				double nx = pts[i + 1].x;
-				double ny = pts[i + 1].y;
+				int nx = pts[i + 1].x;
+				int ny = pts[i + 1].y;
 
 				pMemGraphics->FillEllipse(&brush_black, x - 3, y - 3, 6, 6);
-				pMemGraphics->DrawLine(&pen, (INT)x, (INT)y, (INT)nx, (INT)ny);
+				pMemGraphics->DrawLine(&pen, x, y, nx, ny);
 			}
 
 			double x = pts[pts.size() - 1].x;
 			double y = pts[pts.size() - 1].y;
 			pMemGraphics->FillEllipse(&brush_red, x - 5, y - 5, 10, 10);
 
-			graphics.DrawImage(pMemBitmap, 0, 0);
-			delete pMemGraphics;
+			if (show_guardians)
+			{
+				for (int i = 0; i < gds.size(); i++)
+				{
+					int x = pts[gds[i]].x;
+					int y = pts[gds[i]].y;
+
+					pMemGraphics->FillEllipse(&brush_white, x - 5, y - 5, 10, 10);
+					pMemGraphics->DrawEllipse(&pen, x - 5, y - 5, 10, 10);
+				}
+			}
 		}
+		graphics.DrawImage(&pMemBitmap, 0, 0);
 	}
 }
 
@@ -201,17 +218,32 @@ HCURSOR CGreatWallDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-
+void CGreatWallDlg::redraw()
+{
+	CRect rect;
+	GetClientRect(&rect);
+	rect.bottom -= 50;
+	InvalidateRect(rect);
+}
 
 void CGreatWallDlg::OnBnClickedCheckShowGuardians()
 {
 	// TODO:  在此添加控件通知处理程序代码
+	if (((CButton*)GetDlgItem(IDC_CHECK_SHOW_GUARDIANS))->GetCheck())
+		show_guardians = TRUE;
+	else
+		show_guardians = FALSE;
+	redraw();
 }
 
 
 void CGreatWallDlg::OnBnClickedButtonClear()
 {
 	// TODO:  在此添加控件通知处理程序代码
+	pts.clear();
+	gds.clear();
+
+	redraw();
 }
 
 
@@ -221,10 +253,9 @@ void CGreatWallDlg::OnLButtonDown(UINT nFlags, CPoint point)
 	if (pts.size() == 0 || point.x > pts[pts.size() - 1].x)
 	{
 		pts.push_back(point2d(point.x, point.y));
-		CRect rect;
-		GetClientRect(&rect);
-		rect.bottom -= 50;
-		InvalidateRect(rect);
+		generate_guardians();
+
+		redraw();
 	}
 	CDialogEx::OnLButtonDown(nFlags, point);
 }
@@ -234,4 +265,31 @@ BOOL CGreatWallDlg::OnEraseBkgnd(CDC* pDC)
 {
 	// TODO:  在此添加消息处理程序代码和/或调用默认值
 	return TRUE;
+}
+
+void CGreatWallDlg::generate_guardians()
+{
+	std::vector<int> hull;
+	gds.clear();
+	int last = pts.size() - 1;
+	hull.push_back(last);
+	gds.push_back(last);
+	for (int i = last - 1; i > 0; i--)
+	{
+		while (hull.size() > 1 && to_left_on(pts[hull.end()[-1]], pts[hull.end()[-2]], pts[i]))
+			hull.pop_back();
+		hull.push_back(i);
+		if (to_left(pts[hull.end()[-2]], pts[hull.end()[-1]], pts[i - 1]))
+			gds.push_back(i);
+	}
+}
+
+bool CGreatWallDlg::to_left(point2d p1, point2d p2, point2d p3)
+{
+	return (p3.x - p1.x) * (p2.y - p1.y) - (p2.x - p1.x) * (p3.y - p1.y) > 0;
+}
+
+bool CGreatWallDlg::to_left_on(point2d p1, point2d p2, point2d p3)
+{
+	return (p3.x - p1.x) * (p2.y - p1.y) - (p2.x - p1.x) * (p3.y - p1.y) >= 0;
 }

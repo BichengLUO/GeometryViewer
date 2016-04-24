@@ -7,13 +7,13 @@
 
 typedef struct _point2d
 {
-	double x;
-	double y;
-	_point2d(double xp, double yp) : x(xp), y(yp){}
+	int x;
+	int y;
+	_point2d(int xp, int yp) : x(xp), y(yp){}
 } point2d;
 
 typedef std::vector<point2d> points;
-
+typedef std::vector<int> guardians;
 
 // CGreatWallDlg 对话框
 class CGreatWallDlg : public CDialogEx
@@ -28,6 +28,9 @@ public:
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 支持
 	points pts;
+	guardians gds;
+	BOOL first_run;
+	BOOL show_guardians;
 
 // 实现
 protected:
@@ -44,4 +47,8 @@ public:
 	afx_msg void OnBnClickedButtonClear();
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
+	void redraw();
+	void generate_guardians();
+	bool to_left(point2d p1, point2d p2, point2d p3);
+	bool to_left_on(point2d p1, point2d p2, point2d p3);
 };
