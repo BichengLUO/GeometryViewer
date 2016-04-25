@@ -13,6 +13,14 @@ typedef struct _point2d
 	_point2d(int xp, int yp) : x(xp), y(yp) {}
 } point2d;
 
+typedef struct _point2df
+{
+	double x;
+	double y;
+	_point2df() : x(0), y(0) {}
+	_point2df(double xp, double yp) : x(xp), y(yp) {}
+} point2df;
+
 typedef struct _segment
 {
 	int x;
@@ -22,6 +30,7 @@ typedef struct _segment
 } segment;
 
 typedef std::vector<segment> segments;
+typedef std::vector<point2df> hull;
 
 // CFruitNinjaDlg 对话框
 class CFruitNinjaDlg : public CDialogEx
@@ -37,6 +46,7 @@ public:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 支持
 	point2d mouse_pos;
 	segments sgmts;
+	hull convex_hull;
 	BOOL first_run;
 
 // 实现
@@ -55,5 +65,8 @@ public:
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnBnClickedButtonClear();
 	void redraw();
-	void draw_string(Graphics* pMemGraphics, TCHAR *str, int x, int y, int width, int height);
+	void draw_string(Graphics* pMemGraphics, TCHAR *str, int x, int y, int width, int height, Brush *brush);
+	void draw_convex_hull(Graphics* pMemGraphics, Pen *pen, Brush *brush);
+	void update_conve_hull();
+	void intersect(double x1, double y1, double x2, double y2, double *x, double *y);
 };

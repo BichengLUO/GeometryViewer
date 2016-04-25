@@ -152,6 +152,7 @@ void CFruitNinjaDlg::OnPaint()
 		SolidBrush brush_red(Color::Red);
 		SolidBrush brush_black(Color::Black);
 		SolidBrush brush_gray(Color::Gray);
+		SolidBrush brush_orange(Color::Orange);
 		LinearGradientBrush brush_aqua(Rect(0, 0, rect.Width(), rect.Height()), Color::Aqua, Color::Blue, LinearGradientModeHorizontal);
 		SolidBrush brush_white(Color::White);
 		SolidBrush brush_white_alpha(Color::MakeARGB(200, 255, 255, 255));
@@ -187,28 +188,76 @@ void CFruitNinjaDlg::OnPaint()
 				pMemGraphics->FillEllipse(&brush_gray, x - 4, y - 4, 8, 8);
 			}
 		}
-		draw_string(pMemGraphics, L"Dual Graph", rect.Width() - 305, rect.Height() - 275, 300, 20);
+		pMemGraphics->FillRectangle(&brush_aqua, rect.Width() - 305, rect.Height() - 280, 300, 25);
+		draw_string(pMemGraphics, L"Duality Graph", rect.Width() - 305, rect.Height() - 275, 300, 20, &brush_white);
 		pMemGraphics->FillRectangle(&brush_white_alpha, rect.Width() - 305, rect.Height() - 255, 300, 200);
 		pMemGraphics->DrawRectangle(&pen, rect.Width() - 305, rect.Height() - 255, 300, 200);
+		draw_convex_hull(pMemGraphics, &pen, &brush_orange);
 		graphics.DrawImage(&pMemBitmap, 0, 0);
 	}
 }
 
-void CFruitNinjaDlg::draw_string(Graphics* pMemGraphics, TCHAR *str, int x, int y, int width, int height)
+void CFruitNinjaDlg::draw_string(Graphics* pMemGraphics, TCHAR *str, int x, int y, int width, int height, Brush *brush)
 {
 	// Initialize arguments.
-	Gdiplus::Font myFont(L"Arial", 12);
+	Gdiplus::Font myFont(L"Arial", 10);
 	StringFormat format;
-	SolidBrush blackBrush(Color(255, 0, 0, 0));
 
 	// Draw string.
 	pMemGraphics->DrawString(
 		str,
-		11,
+		wcslen(str),
 		&myFont,
 		RectF(x, y, width, height),
 		&format,
-		&blackBrush);
+		brush);
+}
+
+void CFruitNinjaDlg::draw_convex_hull(Graphics* pMemGraphics, Pen *pen, Brush *brush)
+{
+#ifdef min
+#undef min
+#endif
+#ifdef max
+#undef max
+#endif
+
+	double min_x = std::numeric_limits<double>::max();
+	double max_x = std::numeric_limits<double>::min();
+	double min_y = min_x, max_y = max_x;
+
+#ifndef max
+#define max(a,b) (((a) > (b)) ? (a) : (b))
+#endif
+#ifndef min
+#define min(a,b)  (((a) < (b)) ? (a) : (b))
+#endif
+	CRect rect;
+	GetClientRect(&rect);
+
+	if (convex_hull.size() > 0)
+	{
+		Point *pts = new Point[convex_hull.size()];
+		for (int i = 0; i < convex_hull.size(); i++)
+		{
+			double x = convex_hull[i].x;
+			double y = convex_hull[i].y;
+			min_x = min(min_x, x);
+			max_x = max(max_x, x);
+			min_y = min(min_y, y);
+			max_y = max(max_y, y);
+		}
+		for (int i = 0; i < convex_hull.size(); i++)
+		{
+			double x = convex_hull[i].x;
+			double y = convex_hull[i].y;
+			pts[i].X = (x - min_x) / (max_x - min_x) * 280 + rect.Width() - 295;
+			pts[i].Y = (y - min_y) / (max_y - min_y) * 180 + rect.Height() - 245;
+		}
+		pMemGraphics->FillPolygon(brush, pts, convex_hull.size());
+		pMemGraphics->DrawPolygon(pen, pts, convex_hull.size());
+		delete[] pts;
+	}
 }
 
 //当用户拖动最小化窗口时系统调用此函数取得光标
@@ -238,6 +287,7 @@ void CFruitNinjaDlg::OnLButtonDown(UINT nFlags, CPoint point)
 			last_seg->len = abs(point.y - last_seg->y);
 			if (point.y < last_seg->y)
 				last_seg->y = point.y;
+			update_conve_hull();
 		}
 		else
 			sgmts.push_back(segment(point.x, point.y, 0));
@@ -246,6 +296,43 @@ void CFruitNinjaDlg::OnLButtonDown(UINT nFlags, CPoint point)
 		sgmts.push_back(segment(point.x, point.y, 0));
 	redraw();
 	CDialogEx::OnLButtonDown(nFlags, point);
+}
+
+void CFruitNinjaDlg::update_conve_hull()
+{
+	if (sgmts.size() == 2)
+	{
+		int x1 = sgmts[0].x;
+		int y1 = sgmts[0].y;
+		int len1 = sgmts[0].len;
+		int x2 = sgmts[1].x;
+		int y2 = sgmts[1].y;
+		int len2 = sgmts[1].len;
+
+		double xx1, yy1;
+		intersect(x1, y1, x2, y2, &xx1, &yy1);
+		double xx2, yy2;
+		intersect(x1, y1, x2, y2 + len2, &xx2, &yy2);
+		double xx3, yy3;
+		intersect(x1, y1 + len1, x2, y2 + len2, &xx3, &yy3);
+		double xx4, yy4;
+		intersect(x1, y1 + len1, x2, y2, &xx4, &yy4);
+
+		convex_hull.push_back(point2df(xx1, yy1));
+		convex_hull.push_back(point2df(xx2, yy2));
+		convex_hull.push_back(point2df(xx3, yy3));
+		convex_hull.push_back(point2df(xx4, yy4));
+	}
+	else if (sgmts.size() > 2)
+	{
+
+	}
+}
+
+void CFruitNinjaDlg::intersect(double x1, double y1, double x2, double y2, double *x, double *y)
+{
+	*x = (y2 - y1) / (x1 - x2);
+	*y = (x1 * y2 - x2 * y1) / (x1 - x2);
 }
 
 void CFruitNinjaDlg::redraw()
@@ -274,5 +361,6 @@ void CFruitNinjaDlg::OnBnClickedButtonClear()
 {
 	// TODO:  在此添加控件通知处理程序代码
 	sgmts.clear();
+	convex_hull.clear();
 	redraw();
 }
