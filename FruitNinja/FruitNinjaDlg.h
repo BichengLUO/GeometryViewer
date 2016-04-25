@@ -69,4 +69,7 @@ public:
 	void draw_convex_hull(Graphics* pMemGraphics, Pen *pen, Brush *brush);
 	void update_conve_hull();
 	void intersect(double x1, double y1, double x2, double y2, double *x, double *y);
+	bool is_intersect(point2df p1, point2df p2, double a, double b);
+	void intersect(point2df p1, point2df p2, double a, double b, double *x, double *y);
+	void cut_convex_hull(double a, double b, bool top);
 };
