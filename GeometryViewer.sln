@@ -21,6 +21,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StarsViewer", "StarsViewer\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GreatWall", "GreatWall\GreatWall.vcxproj", "{AFBA7BE2-23D0-489B-BA58-87A0F8A5547F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FruitNinja", "FruitNinja\FruitNinja.vcxproj", "{416CCEF3-BB60-4FE9-B3B5-AB23107D1541}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -63,6 +65,10 @@ Global
 		{AFBA7BE2-23D0-489B-BA58-87A0F8A5547F}.Debug|Win32.Build.0 = Debug|Win32
 		{AFBA7BE2-23D0-489B-BA58-87A0F8A5547F}.Release|Win32.ActiveCfg = Release|Win32
 		{AFBA7BE2-23D0-489B-BA58-87A0F8A5547F}.Release|Win32.Build.0 = Release|Win32
+		{416CCEF3-BB60-4FE9-B3B5-AB23107D1541}.Debug|Win32.ActiveCfg = Debug|Win32
+		{416CCEF3-BB60-4FE9-B3B5-AB23107D1541}.Debug|Win32.Build.0 = Debug|Win32
+		{416CCEF3-BB60-4FE9-B3B5-AB23107D1541}.Release|Win32.ActiveCfg = Release|Win32
+		{416CCEF3-BB60-4FE9-B3B5-AB23107D1541}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
