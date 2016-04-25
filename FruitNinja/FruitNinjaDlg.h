@@ -52,7 +52,8 @@ protected:
 public:
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
-	void redraw();
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnBnClickedButtonClear();
+	void redraw();
+	void draw_string(Graphics* pMemGraphics, TCHAR *str, int x, int y, int width, int height);
 };

@@ -145,7 +145,8 @@ void CFruitNinjaDlg::OnPaint()
 	{
 		CRect rect;
 		GetClientRect(&rect);
-		Pen pen(Color::Black, 2);
+		Pen pen(Color::Black);
+		Pen pen_thick(Color::Black, 2);
 		Pen dash_pen_gray(Color::Gray, 2);
 		dash_pen_gray.SetDashStyle(DashStyleDash);
 		SolidBrush brush_red(Color::Red);
@@ -153,6 +154,7 @@ void CFruitNinjaDlg::OnPaint()
 		SolidBrush brush_gray(Color::Gray);
 		LinearGradientBrush brush_aqua(Rect(0, 0, rect.Width(), rect.Height()), Color::Aqua, Color::Blue, LinearGradientModeHorizontal);
 		SolidBrush brush_white(Color::White);
+		SolidBrush brush_white_alpha(Color::MakeARGB(200, 255, 255, 255));
 
 		Bitmap pMemBitmap(rect.Width(), rect.Height() - 50);
 		Graphics* pMemGraphics = Graphics::FromImage(&pMemBitmap);
@@ -174,7 +176,7 @@ void CFruitNinjaDlg::OnPaint()
 			int len = seg.len;
 			if (len > 0)
 			{
-				pMemGraphics->DrawLine(&pen, x, y, x, y + len);
+				pMemGraphics->DrawLine(&pen_thick, x, y, x, y + len);
 				pMemGraphics->FillEllipse(&brush_black, x - 4, y + len - 4, 8, 8);
 				pMemGraphics->FillEllipse(&brush_black, x - 4, y - 4, 8, 8);
 			}
@@ -185,8 +187,28 @@ void CFruitNinjaDlg::OnPaint()
 				pMemGraphics->FillEllipse(&brush_gray, x - 4, y - 4, 8, 8);
 			}
 		}
+		draw_string(pMemGraphics, L"Dual Graph", rect.Width() - 305, rect.Height() - 275, 300, 20);
+		pMemGraphics->FillRectangle(&brush_white_alpha, rect.Width() - 305, rect.Height() - 255, 300, 200);
+		pMemGraphics->DrawRectangle(&pen, rect.Width() - 305, rect.Height() - 255, 300, 200);
 		graphics.DrawImage(&pMemBitmap, 0, 0);
 	}
+}
+
+void CFruitNinjaDlg::draw_string(Graphics* pMemGraphics, TCHAR *str, int x, int y, int width, int height)
+{
+	// Initialize arguments.
+	Gdiplus::Font myFont(L"Arial", 12);
+	StringFormat format;
+	SolidBrush blackBrush(Color(255, 0, 0, 0));
+
+	// Draw string.
+	pMemGraphics->DrawString(
+		str,
+		11,
+		&myFont,
+		RectF(x, y, width, height),
+		&format,
+		&blackBrush);
 }
 
 //当用户拖动最小化窗口时系统调用此函数取得光标
