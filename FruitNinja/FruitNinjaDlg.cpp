@@ -102,6 +102,23 @@ BOOL CFruitNinjaDlg::OnInitDialog()
 
 	// TODO:  在此添加额外的初始化代码
 	first_run = TRUE;
+#ifdef min
+#undef min
+#endif
+#ifdef max
+#undef max
+#endif
+
+	min_x = std::numeric_limits<double>::max();
+	max_x = std::numeric_limits<double>::min();
+	min_y = min_x, max_y = max_x;
+
+#ifndef max
+#define max(a,b) (((a) > (b)) ? (a) : (b))
+#endif
+#ifndef min
+#define min(a,b)  (((a) < (b)) ? (a) : (b))
+#endif
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
@@ -215,38 +232,27 @@ void CFruitNinjaDlg::draw_string(Graphics* pMemGraphics, TCHAR *str, int x, int 
 
 void CFruitNinjaDlg::draw_convex_hull(Graphics* pMemGraphics, Pen *pen, Brush *brush)
 {
-#ifdef min
-#undef min
-#endif
-#ifdef max
-#undef max
-#endif
-
-	double min_x = std::numeric_limits<double>::max();
-	double max_x = std::numeric_limits<double>::min();
-	double min_y = min_x, max_y = max_x;
-
-#ifndef max
-#define max(a,b) (((a) > (b)) ? (a) : (b))
-#endif
-#ifndef min
-#define min(a,b)  (((a) < (b)) ? (a) : (b))
-#endif
 	CRect rect;
 	GetClientRect(&rect);
-
+	SolidBrush brush_black(Color::Black);
+	Pen dash_pen_gray(Color::Gray);
+	dash_pen_gray.SetDashStyle(DashStyleDash);
+	for (int i = 0; i < hull_history.size(); i++)
+	{
+		Point *pts = new Point[hull_history[i].size()];
+		for (int j = 0; j < hull_history[i].size(); j++)
+		{
+			double x = hull_history[i][j].x;
+			double y = hull_history[i][j].y;
+			pts[j].X = (x - min_x) / (max_x - min_x) * 280 + rect.Width() - 295;
+			pts[j].Y = (y - min_y) / (max_y - min_y) * 180 + rect.Height() - 245;
+		}
+		pMemGraphics->DrawPolygon(&dash_pen_gray, pts, hull_history[i].size());
+		delete[] pts;
+	}
 	if (convex_hull.size() > 0)
 	{
 		Point *pts = new Point[convex_hull.size()];
-		for (int i = 0; i < convex_hull.size(); i++)
-		{
-			double x = convex_hull[i].x;
-			double y = convex_hull[i].y;
-			min_x = min(min_x, x);
-			max_x = max(max_x, x);
-			min_y = min(min_y, y);
-			max_y = max(max_y, y);
-		}
 		for (int i = 0; i < convex_hull.size(); i++)
 		{
 			double x = convex_hull[i].x;
@@ -282,12 +288,15 @@ void CFruitNinjaDlg::OnLButtonDown(UINT nFlags, CPoint point)
 	if (sgmts.size() > 0)
 	{
 		auto last_seg = sgmts.end() - 1;
-		if (last_seg->len == 0 && point.y != last_seg->y)
+		if (last_seg->len == 0)
 		{
-			last_seg->len = abs(point.y - last_seg->y);
-			if (point.y < last_seg->y)
-				last_seg->y = point.y;
-			update_conve_hull();
+			if (point.y != last_seg->y)
+			{
+				last_seg->len = abs(point.y - last_seg->y);
+				if (point.y < last_seg->y)
+					last_seg->y = point.y;
+				update_convex_hull();
+			}
 		}
 		else
 			sgmts.push_back(segment(point.x, point.y, 0));
@@ -298,7 +307,7 @@ void CFruitNinjaDlg::OnLButtonDown(UINT nFlags, CPoint point)
 	CDialogEx::OnLButtonDown(nFlags, point);
 }
 
-void CFruitNinjaDlg::update_conve_hull()
+void CFruitNinjaDlg::update_convex_hull()
 {
 	if (sgmts.size() == 2)
 	{
@@ -322,6 +331,16 @@ void CFruitNinjaDlg::update_conve_hull()
 		convex_hull.push_back(point2df(xx2, yy2));
 		convex_hull.push_back(point2df(xx3, yy3));
 		convex_hull.push_back(point2df(xx4, yy4));
+
+		for (int i = 0; i < convex_hull.size(); i++)
+		{
+			double x = convex_hull[i].x;
+			double y = convex_hull[i].y;
+			min_x = min(min_x, x);
+			max_x = max(max_x, x);
+			min_y = min(min_y, y);
+			max_y = max(max_y, y);
+		}
 	}
 	else if (sgmts.size() > 2)
 	{
@@ -329,8 +348,10 @@ void CFruitNinjaDlg::update_conve_hull()
 		int y = sgmts.end()[-1].y;
 		int len = sgmts.end()[-1].len;
 
-		cut_convex_hull(x, y, false);
-		//cut_convex_hull(x, y + len, true);
+		hull new_convex_hull = cut_convex_hull(convex_hull, x, y, false);
+		new_convex_hull = cut_convex_hull(new_convex_hull, x, y + len, true);
+		hull_history.push_back(convex_hull);
+		convex_hull = new_convex_hull;
 	}
 }
 
@@ -340,13 +361,13 @@ void CFruitNinjaDlg::intersect(double x1, double y1, double x2, double y2, doubl
 	*y = (x1 * y2 - x2 * y1) / (x1 - x2);
 }
 
-void CFruitNinjaDlg::cut_convex_hull(double a, double b, bool top)
+hull CFruitNinjaDlg::cut_convex_hull(const hull &ch, double a, double b, bool top)
 {
 	hull new_convex_hull;
-	for (int i = 0; i < convex_hull.size(); i++)
+	for (int i = 0; i < ch.size(); i++)
 	{
-		point2df p1 = convex_hull[i];
-		point2df p2 = convex_hull[(i + 1) % convex_hull.size()];
+		point2df p1 = ch[i];
+		point2df p2 = ch[(i + 1) % ch.size()];
 		if ((top && a * p1.x + b >= p1.y) || (!top && a * p1.x + b <= p1.y))
 			new_convex_hull.push_back(p1);
 		if (is_intersect(p1, p2, a, b))
@@ -356,14 +377,14 @@ void CFruitNinjaDlg::cut_convex_hull(double a, double b, bool top)
 			new_convex_hull.push_back(point2df(x, y));
 		}
 	}
-	convex_hull = new_convex_hull;
+	return new_convex_hull;
 }
 
 bool CFruitNinjaDlg::is_intersect(point2df p1, point2df p2, double a, double b)
 {
 	double y_diff1 = a * p1.x + b - p1.y;
 	double y_diff2 = a * p2.x + b - p2.y;
-	return y_diff1 * y_diff2 > 0 || y_diff2 == 0;
+	return y_diff1 * y_diff2 <= 0 && y_diff2 != 0;
 }
 
 void CFruitNinjaDlg::intersect(point2df p1, point2df p2, double a, double b, double *x, double *y)
@@ -400,5 +421,23 @@ void CFruitNinjaDlg::OnBnClickedButtonClear()
 	// TODO:  在此添加控件通知处理程序代码
 	sgmts.clear();
 	convex_hull.clear();
+	hull_history.clear();
+#ifdef min
+#undef min
+#endif
+#ifdef max
+#undef max
+#endif
+
+	min_x = std::numeric_limits<double>::max();
+	max_x = std::numeric_limits<double>::min();
+	min_y = min_x, max_y = max_x;
+
+#ifndef max
+#define max(a,b) (((a) > (b)) ? (a) : (b))
+#endif
+#ifndef min
+#define min(a,b)  (((a) < (b)) ? (a) : (b))
+#endif
 	redraw();
 }

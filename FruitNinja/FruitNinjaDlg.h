@@ -47,7 +47,9 @@ public:
 	point2d mouse_pos;
 	segments sgmts;
 	hull convex_hull;
+	std::vector<hull> hull_history;
 	BOOL first_run;
+	double min_x, min_y, max_x, max_y;
 
 // й╣ож
 protected:
@@ -67,9 +69,9 @@ public:
 	void redraw();
 	void draw_string(Graphics* pMemGraphics, TCHAR *str, int x, int y, int width, int height, Brush *brush);
 	void draw_convex_hull(Graphics* pMemGraphics, Pen *pen, Brush *brush);
-	void update_conve_hull();
+	void update_convex_hull();
 	void intersect(double x1, double y1, double x2, double y2, double *x, double *y);
 	bool is_intersect(point2df p1, point2df p2, double a, double b);
 	void intersect(point2df p1, point2df p2, double a, double b, double *x, double *y);
-	void cut_convex_hull(double a, double b, bool top);
+	hull cut_convex_hull(const hull &ch, double a, double b, bool top);
 };
