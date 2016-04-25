@@ -168,9 +168,9 @@ void CFruitNinjaDlg::OnPaint()
 		CRect rect;
 		GetClientRect(&rect);
 		Pen pen(Color::Black);
-		Pen pen_thick(Color::Black, 2);
-		Pen pen_green_thick(Color::Green, 2);
-		Pen dash_pen_gray(Color::Gray, 2);
+		Pen pen_thick(Color::Black, 3);
+		Pen pen_green_thick(Color::Green, 3);
+		Pen dash_pen_gray(Color::Gray, 3);
 		dash_pen_gray.SetDashStyle(DashStyleDash);
 		SolidBrush brush_red(Color::Red);
 		SolidBrush brush_black(Color::Black);
