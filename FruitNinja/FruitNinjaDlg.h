@@ -50,6 +50,10 @@ public:
 	std::vector<hull> hull_history;
 	BOOL first_run;
 	double min_x, min_y, max_x, max_y;
+	Rect dg;
+	BOOL in_dg;
+	Point dg_point;
+	double dg_point_a, dg_point_b;
 
 // й╣ож
 protected:

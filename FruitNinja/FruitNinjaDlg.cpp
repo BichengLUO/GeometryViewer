@@ -119,6 +119,11 @@ BOOL CFruitNinjaDlg::OnInitDialog()
 #ifndef min
 #define min(a,b)  (((a) < (b)) ? (a) : (b))
 #endif
+
+	CRect rect;
+	GetClientRect(&rect);
+	dg = Rect(rect.Width() - 405, rect.Height() - 355, 400, 300);
+	in_dg = FALSE;
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
@@ -164,6 +169,7 @@ void CFruitNinjaDlg::OnPaint()
 		GetClientRect(&rect);
 		Pen pen(Color::Black);
 		Pen pen_thick(Color::Black, 2);
+		Pen pen_green_thick(Color::Green, 2);
 		Pen dash_pen_gray(Color::Gray, 2);
 		dash_pen_gray.SetDashStyle(DashStyleDash);
 		SolidBrush brush_red(Color::Red);
@@ -194,22 +200,39 @@ void CFruitNinjaDlg::OnPaint()
 			int len = seg.len;
 			if (len > 0)
 			{
-				pMemGraphics->DrawLine(&pen_thick, x, y, x, y + len);
+				if (in_dg && dg_point_a * x + dg_point_b >= y && dg_point_a * x + dg_point_b <= y + len)
+					pMemGraphics->DrawLine(&pen_green_thick, x, y, x, y + len);
+				else
+					pMemGraphics->DrawLine(&pen_thick, x, y, x, y + len);
 				pMemGraphics->FillEllipse(&brush_black, x - 4, y + len - 4, 8, 8);
 				pMemGraphics->FillEllipse(&brush_black, x - 4, y - 4, 8, 8);
 			}
 			else
 			{
 				pMemGraphics->DrawLine(&dash_pen_gray, x, y, x, mouse_pos.y);
-				pMemGraphics->FillEllipse(&brush_gray, x - 4, mouse_pos.y, 8, 8);
+				pMemGraphics->FillEllipse(&brush_gray, x - 4, mouse_pos.y - 4, 8, 8);
 				pMemGraphics->FillEllipse(&brush_gray, x - 4, y - 4, 8, 8);
 			}
 		}
-		pMemGraphics->FillRectangle(&brush_aqua, rect.Width() - 305, rect.Height() - 280, 300, 25);
-		draw_string(pMemGraphics, L"Duality Graph", rect.Width() - 305, rect.Height() - 275, 300, 20, &brush_white);
-		pMemGraphics->FillRectangle(&brush_white_alpha, rect.Width() - 305, rect.Height() - 255, 300, 200);
-		pMemGraphics->DrawRectangle(&pen, rect.Width() - 305, rect.Height() - 255, 300, 200);
+		if (in_dg)
+		{
+			int dg_x1 = -10;
+			int dg_y1 = dg_point_a * dg_x1 + dg_point_b;
+			int dg_x2 = rect.Width() + 10;
+			int dg_y2 = dg_point_a * dg_x2 + dg_point_b;
+			pMemGraphics->DrawLine(&dash_pen_gray, dg_x1, dg_y1, dg_x2, dg_y2);
+		}
+		pMemGraphics->FillRectangle(&brush_aqua, dg.X, dg.Y - 25, dg.Width, 25);
+		draw_string(pMemGraphics, L"Duality Graph", dg.X + 5, dg.Y - 20, dg.Width, 20, &brush_white);
+		pMemGraphics->FillRectangle(&brush_white_alpha, dg);
+		pMemGraphics->DrawRectangle(&pen, dg);
 		draw_convex_hull(pMemGraphics, &pen, &brush_orange);
+		if (in_dg)
+		{
+			pMemGraphics->DrawEllipse(&pen_thick, dg_point.X - 5, dg_point.Y - 5, 10, 10);
+			pMemGraphics->FillEllipse(&brush_red, dg_point.X - 5, dg_point.Y - 5, 10, 10);
+		}
+		delete pMemGraphics;
 		graphics.DrawImage(&pMemBitmap, 0, 0);
 	}
 }
@@ -244,8 +267,8 @@ void CFruitNinjaDlg::draw_convex_hull(Graphics* pMemGraphics, Pen *pen, Brush *b
 		{
 			double x = hull_history[i][j].x;
 			double y = hull_history[i][j].y;
-			pts[j].X = (x - min_x) / (max_x - min_x) * 280 + rect.Width() - 295;
-			pts[j].Y = (y - min_y) / (max_y - min_y) * 180 + rect.Height() - 245;
+			pts[j].X = (x - min_x) / (max_x - min_x) * (dg.Width - 20) + dg.X + 10;
+			pts[j].Y = (y - min_y) / (max_y - min_y) * (dg.Height - 20) + dg.Y + 10;
 		}
 		pMemGraphics->DrawPolygon(&dash_pen_gray, pts, hull_history[i].size());
 		delete[] pts;
@@ -257,8 +280,8 @@ void CFruitNinjaDlg::draw_convex_hull(Graphics* pMemGraphics, Pen *pen, Brush *b
 		{
 			double x = convex_hull[i].x;
 			double y = convex_hull[i].y;
-			pts[i].X = (x - min_x) / (max_x - min_x) * 280 + rect.Width() - 295;
-			pts[i].Y = (y - min_y) / (max_y - min_y) * 180 + rect.Height() - 245;
+			pts[i].X = (x - min_x) / (double)(max_x - min_x) * (dg.Width - 20) + dg.X + 10;
+			pts[i].Y = (y - min_y) / (double)(max_y - min_y) * (dg.Height - 20) + dg.Y + 10;
 		}
 		pMemGraphics->FillPolygon(brush, pts, convex_hull.size());
 		pMemGraphics->DrawPolygon(pen, pts, convex_hull.size());
@@ -285,25 +308,28 @@ BOOL CFruitNinjaDlg::OnEraseBkgnd(CDC* pDC)
 void CFruitNinjaDlg::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	// TODO:  在此添加消息处理程序代码和/或调用默认值
-	if (sgmts.size() > 0)
+	if (!dg.Contains(Point(point.x, point.y)))
 	{
-		auto last_seg = sgmts.end() - 1;
-		if (last_seg->len == 0)
+		if (sgmts.size() > 0)
 		{
-			if (point.y != last_seg->y)
+			auto last_seg = sgmts.end() - 1;
+			if (last_seg->len == 0)
 			{
-				last_seg->len = abs(point.y - last_seg->y);
-				if (point.y < last_seg->y)
-					last_seg->y = point.y;
-				update_convex_hull();
+				if (point.y != last_seg->y)
+				{
+					last_seg->len = abs(point.y - last_seg->y);
+					if (point.y < last_seg->y)
+						last_seg->y = point.y;
+					update_convex_hull();
+				}
 			}
+			else
+				sgmts.push_back(segment(point.x, point.y, 0));
 		}
 		else
 			sgmts.push_back(segment(point.x, point.y, 0));
+		redraw();
 	}
-	else
-		sgmts.push_back(segment(point.x, point.y, 0));
-	redraw();
 	CDialogEx::OnLButtonDown(nFlags, point);
 }
 
@@ -406,11 +432,31 @@ void CFruitNinjaDlg::OnMouseMove(UINT nFlags, CPoint point)
 {
 	// TODO:  在此添加消息处理程序代码和/或调用默认值
 	mouse_pos = point2d(point.x, point.y);
-	if (sgmts.size() > 0)
+	if (dg.Contains(Point(point.x, point.y)))
 	{
-		auto last_seg = sgmts.end() - 1;
-		if (last_seg->len == 0)
+		dg_point = Point(point.x, point.y);
+		in_dg = TRUE;
+		dg_point_a = -((dg_point.X - 10 - dg.X) / (double)(dg.Width - 20) * (max_x - min_x) + min_x);
+		dg_point_b = (dg_point.Y - 10 - dg.Y) / (double)(dg.Height - 20) * (max_y - min_y) + min_y;
+		redraw();
+	}
+	else
+	{
+		if (in_dg)
+		{
+			in_dg = FALSE;
 			redraw();
+		}
+		else
+		{
+			in_dg = FALSE;
+			if (sgmts.size() > 0)
+			{
+				auto last_seg = sgmts.end() - 1;
+				if (last_seg->len == 0)
+					redraw();
+			}
+		}
 	}
 	CDialogEx::OnMouseMove(nFlags, point);
 }

@@ -237,6 +237,7 @@ void CGreatWallDlg::OnPaint()
 				}
 			}
 		}
+		delete pMemGraphics;
 		graphics.DrawImage(&pMemBitmap, 0, 0);
 	}
 }
