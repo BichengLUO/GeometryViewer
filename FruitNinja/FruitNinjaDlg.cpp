@@ -169,15 +169,18 @@ void CFruitNinjaDlg::OnPaint()
 		CRect rect;
 		GetClientRect(&rect);
 		Pen pen(Color::Black);
+		Pen pen_gray(Color::Gray);
 		Pen pen_thick(Color::Black, 3);
 		Pen pen_green_thick(Color::Green, 3);
 		Pen dash_pen_gray(Color::Gray, 3);
 		dash_pen_gray.SetDashStyle(DashStyleDash);
 		SolidBrush brush_red(Color::Red);
+		SolidBrush brush_green(Color::Green);
 		SolidBrush brush_black(Color::Black);
 		SolidBrush brush_gray(Color::Gray);
-		SolidBrush brush_orange(Color::Orange);
-		LinearGradientBrush brush_aqua(Rect(0, 0, rect.Width(), rect.Height()), Color::Aqua, Color::Blue, LinearGradientModeHorizontal);
+		LinearGradientBrush brush_ab(Rect(0, 0, rect.Width(), rect.Height()), Color::Aqua, Color::Blue, LinearGradientModeHorizontal);
+		LinearGradientBrush brush_or(Rect(0, 0, rect.Width(), rect.Height()), Color::Orange, Color::Red, LinearGradientModeHorizontal);
+		LinearGradientBrush brush_yo(Rect(0, 0, rect.Width(), rect.Height()), Color::Yellow, Color::Orange, LinearGradientModeHorizontal);
 		SolidBrush brush_white(Color::White);
 		SolidBrush brush_white_alpha(Color::MakeARGB(200, 255, 255, 255));
 
@@ -194,6 +197,10 @@ void CFruitNinjaDlg::OnPaint()
 			first_run = FALSE;
 			return;
 		}
+		WCHAR count_title[128];
+		wsprintf(count_title, L"Size of Segments = %d", sgmts.size());
+		draw_string(pMemGraphics, count_title, 5, 5, 500, 20, &brush_black);
+		int green_sg_count = 0;
 		for (auto &seg : sgmts)
 		{
 			int x = seg.x;
@@ -202,7 +209,10 @@ void CFruitNinjaDlg::OnPaint()
 			if (len > 0)
 			{
 				if (in_dg && dg_point_a * x + dg_point_b >= y && dg_point_a * x + dg_point_b <= y + len)
+				{
 					pMemGraphics->DrawLine(&pen_green_thick, x, y, x, y + len);
+					green_sg_count++;
+				}
 				else
 					pMemGraphics->DrawLine(&pen_thick, x, y, x, y + len);
 				pMemGraphics->FillEllipse(&brush_black, x - 4, y + len - 4, 8, 8);
@@ -222,16 +232,29 @@ void CFruitNinjaDlg::OnPaint()
 			int dg_x2 = rect.Width() + 10;
 			int dg_y2 = dg_point_a * dg_x2 + dg_point_b;
 			pMemGraphics->DrawLine(&dash_pen_gray, dg_x1, dg_y1, dg_x2, dg_y2);
+
+			WCHAR count_title[128];
+			wsprintf(count_title, L"Size of Segments Crossed by the Line = %d", green_sg_count);
+			draw_string(pMemGraphics, count_title, 5, 25, 500, 20, &brush_black);
 		}
-		pMemGraphics->FillRectangle(&brush_aqua, dg.X, dg.Y - 25, dg.Width, 25);
-		draw_string(pMemGraphics, L"Duality Graph", dg.X + 5, dg.Y - 20, dg.Width, 20, &brush_white);
+		if (convex_hull.size() > 0 || sgmts.size() <= 2)
+			pMemGraphics->FillRectangle(&brush_ab, dg.X, dg.Y - 25, dg.Width, 25);
+		else
+			pMemGraphics->FillRectangle(&brush_or, dg.X, dg.Y - 25, dg.Width, 25);
+		pMemGraphics->DrawRectangle(&pen_gray, dg.X, dg.Y - 25, dg.Width, 25);
+		WCHAR dg_title[128];
+		wsprintf(dg_title, L"Duality Graph: Size of Points on the Hull = %d", convex_hull.size());
+		draw_string(pMemGraphics, dg_title, dg.X + 5, dg.Y - 20, dg.Width, 20, &brush_white);
 		pMemGraphics->FillRectangle(&brush_white_alpha, dg);
-		pMemGraphics->DrawRectangle(&pen, dg);
-		draw_convex_hull(pMemGraphics, &pen, &brush_orange);
+		pMemGraphics->DrawRectangle(&pen_gray, dg);
+		draw_convex_hull(pMemGraphics, &pen, &brush_yo);
 		if (in_dg)
 		{
 			pMemGraphics->DrawEllipse(&pen_thick, dg_point.X - 5, dg_point.Y - 5, 10, 10);
-			pMemGraphics->FillEllipse(&brush_red, dg_point.X - 5, dg_point.Y - 5, 10, 10);
+			if (green_sg_count == sgmts.size())
+				pMemGraphics->FillEllipse(&brush_green, dg_point.X - 5, dg_point.Y - 5, 10, 10);
+			else
+				pMemGraphics->FillEllipse(&brush_red, dg_point.X - 5, dg_point.Y - 5, 10, 10);
 		}
 		delete pMemGraphics;
 		graphics.DrawImage(&pMemBitmap, 0, 0);
