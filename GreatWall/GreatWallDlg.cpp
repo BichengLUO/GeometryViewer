@@ -302,15 +302,18 @@ void CGreatWallDlg::generate_guardians()
 {
 	hull.clear();
 	gds.clear();
-	hull.push_back(0);
-	gds.push_back(0);
-	for (int i = 1; i < pts.size() - 1; i++)
+	if (pts.size() > 0)
 	{
-		while (hull.size() > 1 && !to_left_on(pts[hull.end()[-2]], pts[hull.end()[-1]], pts[i]))
-			hull.pop_back();
-		hull.push_back(i);
-		if (to_left(pts[hull.end()[-2]], pts[hull.end()[-1]], pts[i + 1]))
-			gds.push_back(i);
+		hull.push_back(0);
+		gds.push_back(0);
+		for (int i = 1; i < pts.size() - 1; i++)
+		{
+			while (hull.size() > 1 && !to_left_on(pts[hull.end()[-2]], pts[hull.end()[-1]], pts[i]))
+				hull.pop_back();
+			hull.push_back(i);
+			if (to_left(pts[hull.end()[-2]], pts[hull.end()[-1]], pts[i + 1]))
+				gds.push_back(i);
+		}
 	}
 }
 
@@ -339,7 +342,8 @@ void CGreatWallDlg::OnBnClickedCheckShowUpperHull()
 void CGreatWallDlg::OnBnClickedButtonUndo()
 {
 	// TODO:  在此添加控件通知处理程序代码
-	pts.pop_back();
+	if (pts.size() > 0)
+		pts.pop_back();
 	generate_guardians();
 
 	redraw();
