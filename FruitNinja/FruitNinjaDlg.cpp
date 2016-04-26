@@ -303,6 +303,7 @@ void CFruitNinjaDlg::draw_convex_hull(Graphics* pMemGraphics, Pen *pen, Brush *b
 	CRect rect;
 	GetClientRect(&rect);
 	SolidBrush brush_black(Color::Black);
+	SolidBrush brush_brown(Color::Brown);
 	Pen dash_pen_gray(Color::Gray);
 	dash_pen_gray.SetDashStyle(DashStyleDash);
 	for (int i = 0; i < hull_history.size(); i++)
@@ -330,6 +331,11 @@ void CFruitNinjaDlg::draw_convex_hull(Graphics* pMemGraphics, Pen *pen, Brush *b
 		}
 		pMemGraphics->FillPolygon(brush, pts, convex_hull.size());
 		pMemGraphics->DrawPolygon(pen, pts, convex_hull.size());
+		for (int i = 0; i < convex_hull.size(); i++)
+		{
+			pMemGraphics->FillEllipse(&brush_brown, pts[i].X - 3, pts[i].Y - 3, 6, 6);
+			pMemGraphics->DrawEllipse(pen, pts[i].X - 3, pts[i].Y - 3, 6, 6);
+		}
 		delete[] pts;
 	}
 }
