@@ -78,4 +78,5 @@ public:
 	bool is_intersect(point2df p1, point2df p2, double a, double b);
 	void intersect(point2df p1, point2df p2, double a, double b, double *x, double *y);
 	hull cut_convex_hull(const hull &ch, double a, double b, bool top);
+	afx_msg void OnBnClickedButtonUndo();
 };

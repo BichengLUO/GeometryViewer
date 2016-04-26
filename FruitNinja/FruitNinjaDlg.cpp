@@ -66,6 +66,7 @@ BEGIN_MESSAGE_MAP(CFruitNinjaDlg, CDialogEx)
 	ON_WM_LBUTTONDOWN()
 	ON_WM_MOUSEMOVE()
 	ON_BN_CLICKED(IDC_BUTTON_CLEAR, &CFruitNinjaDlg::OnBnClickedButtonClear)
+	ON_BN_CLICKED(IDC_BUTTON_UNDO, &CFruitNinjaDlg::OnBnClickedButtonUndo)
 END_MESSAGE_MAP()
 
 
@@ -485,5 +486,40 @@ void CFruitNinjaDlg::OnBnClickedButtonClear()
 #ifndef min
 #define min(a,b)  (((a) < (b)) ? (a) : (b))
 #endif
+	redraw();
+}
+
+
+void CFruitNinjaDlg::OnBnClickedButtonUndo()
+{
+	// TODO:  在此添加控件通知处理程序代码
+	if (sgmts.size() > 0)
+		sgmts.pop_back();
+	if (hull_history.size() > 0)
+	{
+		convex_hull = hull_history.end()[-1];
+		hull_history.pop_back();
+	}
+	else
+	{
+		convex_hull.clear();
+#ifdef min
+#undef min
+#endif
+#ifdef max
+#undef max
+#endif
+
+		min_x = std::numeric_limits<double>::max();
+		max_x = std::numeric_limits<double>::min();
+		min_y = min_x, max_y = max_x;
+
+#ifndef max
+#define max(a,b) (((a) > (b)) ? (a) : (b))
+#endif
+#ifndef min
+#define min(a,b)  (((a) < (b)) ? (a) : (b))
+#endif
+	}
 	redraw();
 }
