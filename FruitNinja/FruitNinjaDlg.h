@@ -52,6 +52,7 @@ public:
 	double min_x, min_y, max_x, max_y;
 	Rect dg;
 	BOOL in_dg;
+	BOOL show_coordinates;
 	Point dg_point;
 	double dg_point_a, dg_point_b;
 
@@ -79,4 +80,5 @@ public:
 	void intersect(point2df p1, point2df p2, double a, double b, double *x, double *y);
 	hull cut_convex_hull(const hull &ch, double a, double b, bool top);
 	afx_msg void OnBnClickedButtonUndo();
+	afx_msg void OnBnClickedCheckShowCoordinates();
 };

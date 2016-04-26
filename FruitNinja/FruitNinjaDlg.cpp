@@ -67,6 +67,7 @@ BEGIN_MESSAGE_MAP(CFruitNinjaDlg, CDialogEx)
 	ON_WM_MOUSEMOVE()
 	ON_BN_CLICKED(IDC_BUTTON_CLEAR, &CFruitNinjaDlg::OnBnClickedButtonClear)
 	ON_BN_CLICKED(IDC_BUTTON_UNDO, &CFruitNinjaDlg::OnBnClickedButtonUndo)
+	ON_BN_CLICKED(IDC_CHECK_SHOW_COORDINATES, &CFruitNinjaDlg::OnBnClickedCheckShowCoordinates)
 END_MESSAGE_MAP()
 
 
@@ -125,6 +126,7 @@ BOOL CFruitNinjaDlg::OnInitDialog()
 	GetClientRect(&rect);
 	dg = Rect(rect.Width() - 405, rect.Height() - 355, 400, 300);
 	in_dg = FALSE;
+	show_coordinates = FALSE;
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
@@ -176,7 +178,9 @@ void CFruitNinjaDlg::OnPaint()
 		dash_pen_gray.SetDashStyle(DashStyleDash);
 		SolidBrush brush_red(Color::Red);
 		SolidBrush brush_green(Color::Green);
+		SolidBrush brush_green_alpha(Color::MakeARGB(100, 0, 155, 0));
 		SolidBrush brush_black(Color::Black);
+		SolidBrush brush_black_alpha(Color::MakeARGB(100, 0, 0, 0));
 		SolidBrush brush_gray(Color::Gray);
 		LinearGradientBrush brush_ab(Rect(0, 0, rect.Width(), rect.Height()), Color::Aqua, Color::Blue, LinearGradientModeHorizontal);
 		LinearGradientBrush brush_or(Rect(0, 0, rect.Width(), rect.Height()), Color::Orange, Color::Red, LinearGradientModeHorizontal);
@@ -217,6 +221,23 @@ void CFruitNinjaDlg::OnPaint()
 					pMemGraphics->DrawLine(&pen_thick, x, y, x, y + len);
 				pMemGraphics->FillEllipse(&brush_black, x - 4, y + len - 4, 8, 8);
 				pMemGraphics->FillEllipse(&brush_black, x - 4, y - 4, 8, 8);
+				if (show_coordinates)
+				{
+					WCHAR pt_title[128];
+					wsprintf(pt_title, L"(%d,%d)", x, y);
+					if (in_dg && dg_point_a * x + dg_point_b >= y && dg_point_a * x + dg_point_b <= y + len)
+						pMemGraphics->FillRectangle(&brush_green_alpha, x + 5, y + 10, 70, 20);
+					else
+						pMemGraphics->FillRectangle(&brush_black_alpha, x + 5, y + 10, 70, 20);
+					draw_string(pMemGraphics, pt_title, x + 10, y + 10, 70, 20, &brush_white);
+
+					wsprintf(pt_title, L"(%d,%d)", x, y + len);
+					if (in_dg && dg_point_a * x + dg_point_b >= y && dg_point_a * x + dg_point_b <= y + len)
+						pMemGraphics->FillRectangle(&brush_green_alpha, x + 5, y + len + 10, 70, 20);
+					else
+						pMemGraphics->FillRectangle(&brush_black_alpha, x + 5, y + len + 10, 70, 20);
+					draw_string(pMemGraphics, pt_title, x + 10, y + len + 10, 70, 20, &brush_white);
+				}
 			}
 			else
 			{
@@ -544,5 +565,16 @@ void CFruitNinjaDlg::OnBnClickedButtonUndo()
 #define min(a,b)  (((a) < (b)) ? (a) : (b))
 #endif
 	}
+	redraw();
+}
+
+
+void CFruitNinjaDlg::OnBnClickedCheckShowCoordinates()
+{
+	// TODO:  在此添加控件通知处理程序代码
+	if (((CButton*)GetDlgItem(IDC_CHECK_SHOW_COORDINATES))->GetCheck())
+		show_coordinates = TRUE;
+	else
+		show_coordinates = FALSE;
 	redraw();
 }

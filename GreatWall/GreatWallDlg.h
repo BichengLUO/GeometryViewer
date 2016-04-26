@@ -33,6 +33,7 @@ public:
 	BOOL first_run;
 	BOOL show_guardians;
 	BOOL show_upper_hull;
+	BOOL show_coordinates;
 
 // й╣ож
 protected:
@@ -55,4 +56,6 @@ public:
 	bool to_left_on(point2d p1, point2d p2, point2d p3);
 	afx_msg void OnBnClickedCheckShowUpperHull();
 	afx_msg void OnBnClickedButtonUndo();
+	void draw_string(Graphics* pMemGraphics, TCHAR *str, int x, int y, int width, int height, Brush *brush);
+	afx_msg void OnBnClickedCheckShowCoordinates();
 };

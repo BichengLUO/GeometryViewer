@@ -69,6 +69,7 @@ BEGIN_MESSAGE_MAP(CGreatWallDlg, CDialogEx)
 	ON_WM_ERASEBKGND()
 	ON_BN_CLICKED(IDC_CHECK_SHOW_UPPER_HULL, &CGreatWallDlg::OnBnClickedCheckShowUpperHull)
 	ON_BN_CLICKED(IDC_BUTTON_UNDO, &CGreatWallDlg::OnBnClickedButtonUndo)
+	ON_BN_CLICKED(IDC_CHECK_SHOW_COORDINATES, &CGreatWallDlg::OnBnClickedCheckShowCoordinates)
 END_MESSAGE_MAP()
 
 
@@ -106,6 +107,7 @@ BOOL CGreatWallDlg::OnInitDialog()
 	// TODO:  在此添加额外的初始化代码
 	show_guardians = FALSE;
 	show_upper_hull = FALSE;
+	show_coordinates = FALSE;
 	first_run = TRUE;
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -159,6 +161,7 @@ void CGreatWallDlg::OnPaint()
 		SolidBrush brush_black(Color::Black);
 		LinearGradientBrush brush_aqua(Rect(0, 0, rect.Width(), rect.Height()), Color::Aqua, Color::Blue, LinearGradientModeHorizontal);
 		SolidBrush brush_white(Color::White);
+		SolidBrush brush_white_alpha(Color::MakeARGB(200, 255, 255, 255));
 
 		Bitmap pMemBitmap(rect.Width(), rect.Height() - 50);
 		Graphics* pMemGraphics = Graphics::FromImage(&pMemBitmap);
@@ -173,6 +176,9 @@ void CGreatWallDlg::OnPaint()
 			first_run = FALSE;
 			return;
 		}
+		WCHAR count_title[128];
+		wsprintf(count_title, L"Size of Points = %d", pts.size());
+		draw_string(pMemGraphics, count_title, 5, 5, 500, 20, &brush_black);
 		if (pts.size() > 0)
 		{
 			if (pts.size() > 1)
@@ -184,6 +190,17 @@ void CGreatWallDlg::OnPaint()
 				array[pts.size() + 1] = Point(array[0].X, 800);
 				pMemGraphics->FillPolygon(&brush_aqua, array, pts.size() + 2);
 				delete[] array;
+			}
+			if (show_coordinates)
+			{
+				for (int i = 0; i < pts.size(); i++)
+				{
+					WCHAR pt_title[128];
+					wsprintf(pt_title, L"(%d,%d)", pts[i].x, pts[i].y);
+					pMemGraphics->DrawRectangle(&pen, pts[i].x - 25, pts[i].y + 50, 70, 20);
+					pMemGraphics->FillRectangle(&brush_white_alpha, pts[i].x - 25, pts[i].y + 50, 70, 20);
+					draw_string(pMemGraphics, pt_title, pts[i].x - 20, pts[i].y + 50, 70, 20, &brush_black);
+				}
 			}
 			if (show_upper_hull)
 			{
@@ -235,11 +252,30 @@ void CGreatWallDlg::OnPaint()
 					pMemGraphics->FillEllipse(&brush_white, x - 5, y - 5, 10, 10);
 					pMemGraphics->DrawEllipse(&pen, x - 5, y - 5, 10, 10);
 				}
+				WCHAR gds_title[128];
+				wsprintf(gds_title, L"Minimium Size of Guardians = %d", gds.size());
+				draw_string(pMemGraphics, gds_title, 5, 25, 500, 20, &brush_black);
 			}
 		}
 		delete pMemGraphics;
 		graphics.DrawImage(&pMemBitmap, 0, 0);
 	}
+}
+
+void CGreatWallDlg::draw_string(Graphics* pMemGraphics, TCHAR *str, int x, int y, int width, int height, Brush *brush)
+{
+	// Initialize arguments.
+	Gdiplus::Font myFont(L"Arial", 10);
+	StringFormat format;
+
+	// Draw string.
+	pMemGraphics->DrawString(
+		str,
+		wcslen(str),
+		&myFont,
+		RectF(x, y, width, height),
+		&format,
+		brush);
 }
 
 //当用户拖动最小化窗口时系统调用此函数取得光标
@@ -346,5 +382,16 @@ void CGreatWallDlg::OnBnClickedButtonUndo()
 		pts.pop_back();
 	generate_guardians();
 
+	redraw();
+}
+
+
+void CGreatWallDlg::OnBnClickedCheckShowCoordinates()
+{
+	// TODO:  在此添加控件通知处理程序代码
+	if (((CButton*)GetDlgItem(IDC_CHECK_SHOW_COORDINATES))->GetCheck())
+		show_coordinates = TRUE;
+	else
+		show_coordinates = FALSE;
 	redraw();
 }
