@@ -328,7 +328,12 @@ void CGreatWallDlg::OnLButtonDown(UINT nFlags, CPoint point)
 	// TODO:  在此添加消息处理程序代码和/或调用默认值
 	CRect rect;
 	GetClientRect(&rect);
-	if (pts.size() == 0 || point.x < pts[pts.size() - 1].x)
+
+	CRect rect2 = rect;
+	rect2.right -= 300;
+	rect2.bottom -= 50;
+
+	if (rect2.PtInRect(point) && (pts.size() == 0 || point.x < pts[pts.size() - 1].x))
 	{
 		pts.push_back(point2d(point.x, rect.Height() - point.y));
 		generate_guardians();
