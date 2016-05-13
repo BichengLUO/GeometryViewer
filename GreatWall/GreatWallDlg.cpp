@@ -7,10 +7,14 @@
 #include "GreatWallDlg.h"
 #include "afxdialogex.h"
 #include <stack>
+#include <fstream>
+#include <sstream>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
+
+#define RANGE 100000
 
 
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
@@ -70,6 +74,8 @@ BEGIN_MESSAGE_MAP(CGreatWallDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_CHECK_SHOW_UPPER_HULL, &CGreatWallDlg::OnBnClickedCheckShowUpperHull)
 	ON_BN_CLICKED(IDC_BUTTON_UNDO, &CGreatWallDlg::OnBnClickedButtonUndo)
 	ON_BN_CLICKED(IDC_CHECK_SHOW_COORDINATES, &CGreatWallDlg::OnBnClickedCheckShowCoordinates)
+	ON_BN_CLICKED(IDC_BUTTON_GENERATE, &CGreatWallDlg::OnBnClickedButtonGenerate)
+	ON_BN_CLICKED(IDC_BUTTON_IMPORT, &CGreatWallDlg::OnBnClickedButtonImport)
 END_MESSAGE_MAP()
 
 
@@ -105,10 +111,12 @@ BOOL CGreatWallDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO:  在此添加额外的初始化代码
+	srand((unsigned)time(NULL));
 	show_guardians = FALSE;
 	show_upper_hull = FALSE;
 	show_coordinates = FALSE;
 	first_run = TRUE;
+	((CButton*)GetDlgItem(IDC_RADIO_RANDOM_MODE))->SetCheck(TRUE);
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
@@ -163,10 +171,10 @@ void CGreatWallDlg::OnPaint()
 		SolidBrush brush_white(Color::White);
 		SolidBrush brush_white_alpha(Color::MakeARGB(200, 255, 255, 255));
 
-		Bitmap pMemBitmap(rect.Width(), rect.Height() - 50);
+		Bitmap pMemBitmap(rect.Width() - 300, rect.Height() - 50);
 		Graphics* pMemGraphics = Graphics::FromImage(&pMemBitmap);
 		pMemGraphics->SetSmoothingMode(SmoothingMode::SmoothingModeAntiAlias);
-		pMemGraphics->FillRectangle(&brush_white, 0, 0, rect.Width(), rect.Height() - 50);
+		pMemGraphics->FillRectangle(&brush_white, 0, 0, rect.Width() - 300, rect.Height() - 50);
 
 		CPaintDC dc(this);
 		Graphics graphics(dc.m_hDC);
@@ -185,7 +193,7 @@ void CGreatWallDlg::OnPaint()
 			{
 				Point *array = new Point[pts.size() + 2];
 				for (int i = 0; i < pts.size(); i++)
-					array[i] = Point(pts[i].x, pts[i].y);
+					array[i] = Point(pts[i].x, rect.Height() - pts[i].y);
 				array[pts.size()] = Point(array[pts.size() - 1].X, 800);
 				array[pts.size() + 1] = Point(array[0].X, 800);
 				pMemGraphics->FillPolygon(&brush_aqua, array, pts.size() + 2);
@@ -197,9 +205,9 @@ void CGreatWallDlg::OnPaint()
 				{
 					WCHAR pt_title[128];
 					wsprintf(pt_title, L"(%d,%d)", pts[i].x, pts[i].y);
-					pMemGraphics->DrawRectangle(&pen, pts[i].x - 25, pts[i].y + 50, 70, 20);
-					pMemGraphics->FillRectangle(&brush_white_alpha, pts[i].x - 25, pts[i].y + 50, 70, 20);
-					draw_string(pMemGraphics, pt_title, pts[i].x - 20, pts[i].y + 50, 70, 20, &brush_black);
+					pMemGraphics->DrawRectangle(&pen, pts[i].x - 25, rect.Height() - pts[i].y + 50, 70, 20);
+					pMemGraphics->FillRectangle(&brush_white_alpha, pts[i].x - 25, rect.Height() - pts[i].y + 50, 70, 20);
+					draw_string(pMemGraphics, pt_title, pts[i].x - 20, rect.Height() - pts[i].y + 50, 70, 20, &brush_black);
 				}
 			}
 			if (show_upper_hull)
@@ -211,7 +219,7 @@ void CGreatWallDlg::OnPaint()
 					int nx = pts[hull[i + 1]].x;
 					int ny = pts[hull[i + 1]].y;
 
-					pMemGraphics->DrawLine(&dash_pen_red, x, y, nx, ny);
+					pMemGraphics->DrawLine(&dash_pen_red, x, rect.Height() - y, nx, rect.Height() - ny);
 				}
 				if (hull.size() > 1)
 				{
@@ -223,13 +231,13 @@ void CGreatWallDlg::OnPaint()
 					int nx = x + 60 * (x - lx) / len;
 					int ny = y + 60 * (y - ly) / len;
 
-					pMemGraphics->DrawLine(&dash_pen_orange, x, y, nx, ny);
+					pMemGraphics->DrawLine(&dash_pen_orange, x, rect.Height() - y, nx, rect.Height() - ny);
 				}
 			}
 
 			double x = pts[0].x;
 			double y = pts[0].y;
-			pMemGraphics->FillEllipse(&brush_red, x - 5, y - 5, 10, 10);
+			pMemGraphics->FillEllipse(&brush_red, x - 5, rect.Height() - y - 5, 10, 10);
 			for (int i = 1; i < pts.size(); i++)
 			{
 				int x = pts[i].x;
@@ -238,8 +246,8 @@ void CGreatWallDlg::OnPaint()
 				int nx = pts[i - 1].x;
 				int ny = pts[i - 1].y;
 
-				pMemGraphics->FillEllipse(&brush_black, x - 3, y - 3, 6, 6);
-				pMemGraphics->DrawLine(&pen, x, y, nx, ny);
+				pMemGraphics->FillEllipse(&brush_black, x - 3, rect.Height() - y - 3, 6, 6);
+				pMemGraphics->DrawLine(&pen, x, rect.Height() - y, nx, rect.Height() - ny);
 			}
 
 			if (show_guardians)
@@ -249,8 +257,8 @@ void CGreatWallDlg::OnPaint()
 					int x = pts[gds[i]].x;
 					int y = pts[gds[i]].y;
 
-					pMemGraphics->FillEllipse(&brush_white, x - 5, y - 5, 10, 10);
-					pMemGraphics->DrawEllipse(&pen, x - 5, y - 5, 10, 10);
+					pMemGraphics->FillEllipse(&brush_white, x - 5, rect.Height() - y - 5, 10, 10);
+					pMemGraphics->DrawEllipse(&pen, x - 5, rect.Height() - y - 5, 10, 10);
 				}
 				WCHAR gds_title[128];
 				wsprintf(gds_title, L"Minimium Size of Guardians = %d", gds.size());
@@ -289,6 +297,7 @@ void CGreatWallDlg::redraw()
 {
 	CRect rect;
 	GetClientRect(&rect);
+	rect.right -= 300;
 	rect.bottom -= 50;
 	InvalidateRect(rect);
 }
@@ -317,9 +326,11 @@ void CGreatWallDlg::OnBnClickedButtonClear()
 void CGreatWallDlg::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	// TODO:  在此添加消息处理程序代码和/或调用默认值
+	CRect rect;
+	GetClientRect(&rect);
 	if (pts.size() == 0 || point.x < pts[pts.size() - 1].x)
 	{
-		pts.push_back(point2d(point.x, point.y));
+		pts.push_back(point2d(point.x, rect.Height() - point.y));
 		generate_guardians();
 
 		redraw();
@@ -355,12 +366,20 @@ void CGreatWallDlg::generate_guardians()
 
 bool CGreatWallDlg::to_left(point2d p1, point2d p2, point2d p3)
 {
-	return (p3.x - p1.x) * (p2.y - p1.y) - (p2.x - p1.x) * (p3.y - p1.y) > 0;
+	long long a = p3.x - p1.x;
+	long long b = p2.y - p1.y;
+	long long c = p2.x - p1.x;
+	long long d = p3.y - p1.y;
+	return a * b - c * d < 0;
 }
 
 bool CGreatWallDlg::to_left_on(point2d p1, point2d p2, point2d p3)
 {
-	return (p3.x - p1.x) * (p2.y - p1.y) - (p2.x - p1.x) * (p3.y - p1.y) >= 0;
+	long long a = p3.x - p1.x;
+	long long b = p2.y - p1.y;
+	long long c = p2.x - p1.x;
+	long long d = p3.y - p1.y;
+	return a * b - c * d <= 0;
 }
 
 
@@ -394,4 +413,222 @@ void CGreatWallDlg::OnBnClickedCheckShowCoordinates()
 	else
 		show_coordinates = FALSE;
 	redraw();
+}
+
+
+void CGreatWallDlg::OnBnClickedButtonGenerate()
+{
+	// TODO:  在此添加控件通知处理程序代码
+	double i;
+	CString number_str;
+	GetDlgItem(IDC_EDIT_NUMBER)->GetWindowText(number_str);
+	int number = _ttoi(number_str);
+
+	CString count_formula;
+	GetDlgItem(IDC_EDIT_COUNT_FORMULA)->GetWindowText(count_formula);
+	CString name_formula;
+	GetDlgItem(IDC_EDIT_NAME_FORMULA)->GetWindowText(name_formula);
+
+	symbol_table_t symbol_table;
+	symbol_table.add_variable("i", i);
+	symbol_table.add_constants();
+
+	expression_t exp_count;
+	exp_count.register_symbol_table(symbol_table);
+
+	expression_t exp_name;
+	exp_name.register_symbol_table(symbol_table);
+
+	parser_t parser;
+	parser.compile(std::string(CT2CA(count_formula)), exp_count);
+	parser.compile(std::string(CT2CA(name_formula)), exp_name);
+
+	std::ostringstream oss;
+	oss << "Generation done!\n";
+	oss << "---------------------\n";
+	for (i = 0; i < number; i += 1)
+	{
+		int count = exp_count.value();
+		int name = exp_name.value();
+
+		char input_name_str[128];
+		sprintf(input_name_str, "%d.in", name);
+		char output_name_str[128];
+		sprintf(output_name_str, "%d.out", name);
+
+		points input;
+		if (((CButton*)GetDlgItem(IDC_RADIO_RANDOM_MODE))->GetCheck())
+			input = random_input(count);
+		else if (((CButton*)GetDlgItem(IDC_RADIO_CONVEX_MODE))->GetCheck())
+			input = convex_input(count);
+		else if (((CButton*)GetDlgItem(IDC_RADIO_CONCAVE_MODE))->GetCheck())
+			input = concave_input(count);
+
+		LARGE_INTEGER BeginTime;
+		LARGE_INTEGER EndTime;
+		LARGE_INTEGER Frequency;
+
+		QueryPerformanceFrequency(&Frequency);
+		QueryPerformanceCounter(&BeginTime);
+		int output = generate_guardians_pts(input);
+		QueryPerformanceCounter(&EndTime);
+		float tm = (float)(EndTime.QuadPart - BeginTime.QuadPart) / Frequency.QuadPart;
+		oss << "(" << i + 1 << ") " << name << ".in [size: " << count << "] --> " << name << ".out [" << output << "] Time: " << tm << "s\n";
+
+		std::ofstream input_file(input_name_str, std::ofstream::out);
+		std::ofstream output_file(output_name_str, std::ofstream::out);
+
+		input_file << count << std::endl;
+		for (int j = count - 1; j >= 0; j--)
+			input_file << (int)input[j].x << " " << (int)input[j].y << std::endl;
+		output_file << output;
+	}
+
+	MessageBox(CA2CT(oss.str().c_str()), _T("Complete"));
+}
+
+int CGreatWallDlg::random_int(std::mt19937 &rng, int min, int max)
+{
+	std::uniform_int_distribution<int> uni(min + 1, max - 1); // guaranteed unbiased
+	return uni(rng);
+}
+
+points CGreatWallDlg::random_input(int count)
+{
+	std::random_device rd;     // only used once to initialise (seed) engine
+	std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
+	points input;
+	int slot = 2 * RANGE / count;
+	int x = random_int(rng, RANGE - slot, RANGE);
+	int y = random_int(rng, -RANGE, RANGE);
+	input.push_back(point2d(x, y));
+	for (int i = 1; i < count; i++)
+	{
+		x = random_int(rng, x - slot, x);
+		y = random_int(rng, -RANGE, RANGE);
+		input.push_back(point2d(x, y));
+	}
+	return input;
+}
+
+
+points CGreatWallDlg::convex_input(int count)
+{
+	std::random_device rd;     // only used once to initialise (seed) engine
+	std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
+	points input;
+	int slot = 2 * RANGE / count;
+	int x = random_int(rng, RANGE - slot, RANGE);
+	int y = random_int(rng, -RANGE, RANGE);
+	input.push_back(point2d(x, y));
+	for (int i = 1; i < count; i++)
+	{
+		int nx = random_int(rng, x - slot, x);
+		if (i > 1)
+		{
+			int lx = input.end()[-2].x;
+			int ly = input.end()[-2].y;
+			int ny_max = y - (x - nx) * ((ly - y) / (double)(lx - x));
+			y = random_int(rng, ny_max - slot, ny_max);
+		}
+		else
+			y = random_int(rng, y, y + slot);
+		x = nx;
+		input.push_back(point2d(x, y));
+	}
+	return input;
+}
+
+
+points CGreatWallDlg::concave_input(int count)
+{
+	std::random_device rd;     // only used once to initialise (seed) engine
+	std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
+	points input;
+	int slot = 2 * RANGE / count;
+	int x = random_int(rng, RANGE - slot, RANGE);
+	int y = random_int(rng, -RANGE, RANGE);
+	input.push_back(point2d(x, y));
+	for (int i = 1; i < count; i++)
+	{
+		int nx = random_int(rng, x - slot, x);
+		if (i > 1)
+		{
+			int lx = input.end()[-2].x;
+			int ly = input.end()[-2].y;
+			int ny_min = y - (x - nx) * ((ly - y) / (double)(lx - x));
+			y = random_int(rng, ny_min, ny_min + slot);
+		}
+		else
+			y = random_int(rng, y - slot, y);
+		x = nx;
+		input.push_back(point2d(x, y));
+	}
+	return input;
+}
+
+
+int CGreatWallDlg::generate_guardians_pts(const points &ptsp)
+{
+	std::vector<int> hullp;
+	guardians gdsp;
+	if (ptsp.size() > 0)
+	{
+		hullp.push_back(0);
+		gdsp.push_back(0);
+		for (int i = 1; i < ptsp.size() - 1; i++)
+		{
+			while (hullp.size() > 1 && !to_left_on(ptsp[hullp.end()[-2]], ptsp[hullp.end()[-1]], ptsp[i]))
+				hullp.pop_back();
+			hullp.push_back(i);
+			if (to_left(ptsp[hullp.end()[-2]], ptsp[hullp.end()[-1]], ptsp[i + 1]))
+				gdsp.push_back(i);
+		}
+	}
+	return gdsp.size() - 1;
+}
+
+
+void CGreatWallDlg::OnBnClickedButtonImport()
+{
+	// TODO:  在此添加控件通知处理程序代码
+	CRect rect;
+	GetClientRect(&rect);
+	CFileDialog dlg(TRUE, //TRUE为OPEN对话框，FALSE为SAVE AS对话框
+		NULL,
+		NULL,
+		OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+		(LPCTSTR)_TEXT("Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"),
+		NULL);
+	if (dlg.DoModal() == IDOK)
+	{
+		
+		pts.clear();
+		gds.clear();
+		std::ifstream input(dlg.GetPathName(), std::ifstream::in);
+		int count;
+		input >> count;
+		int min_x = 9999999, max_x = -9999999;
+		int min_y = 9999999, max_y = -9999999;
+		for (int i = 0; i < count; i++)
+		{
+			int x, y;
+			input >> x >> y;
+			pts.push_back(point2d(x, y));
+
+			min_x = min(x, min_x);
+			max_x = max(x, max_x);
+			min_y = min(y, min_y);
+			max_y = max(y, max_y);
+		}
+		std::reverse(std::begin(pts), std::end(pts));
+		generate_guardians();
+		for (int i = 0; i < count; i++)
+		{
+			pts[i].x = ((pts[i].x - min_x) / (double)(max_x - min_x)) * (rect.Width() - 340) + 20;
+			pts[i].y = ((pts[i].y - min_y) / (double)(max_y - min_y)) * (rect.Height() - 90) + 70;
+		}
+		redraw();
+	}
+	else return;
 }

@@ -4,6 +4,7 @@
 
 #pragma once
 #include <vector>
+#include <random>
 
 typedef struct _point2d
 {
@@ -14,6 +15,7 @@ typedef struct _point2d
 
 typedef std::vector<point2d> points;
 typedef std::vector<int> guardians;
+
 
 // CGreatWallDlg ¶Ô»°¿ò
 class CGreatWallDlg : public CDialogEx
@@ -52,10 +54,17 @@ public:
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 	void redraw();
 	void generate_guardians();
+	int generate_guardians_pts(const points &pts);
+	int random_int(std::mt19937 &rng, int min, int max);
+	points random_input(int count);
+	points convex_input(int count);
+	points concave_input(int count);
 	bool to_left(point2d p1, point2d p2, point2d p3);
 	bool to_left_on(point2d p1, point2d p2, point2d p3);
 	afx_msg void OnBnClickedCheckShowUpperHull();
 	afx_msg void OnBnClickedButtonUndo();
 	void draw_string(Graphics* pMemGraphics, TCHAR *str, int x, int y, int width, int height, Brush *brush);
 	afx_msg void OnBnClickedCheckShowCoordinates();
+	afx_msg void OnBnClickedButtonGenerate();
+	afx_msg void OnBnClickedButtonImport();
 };
