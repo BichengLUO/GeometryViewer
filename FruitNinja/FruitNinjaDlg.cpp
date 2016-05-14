@@ -103,7 +103,6 @@ BOOL CFruitNinjaDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO:  在此添加额外的初始化代码
-	first_run = TRUE;
 #ifdef min
 #undef min
 #endif
@@ -186,21 +185,18 @@ void CFruitNinjaDlg::OnPaint()
 		LinearGradientBrush brush_or(Rect(0, 0, rect.Width(), rect.Height()), Color::Orange, Color::Red, LinearGradientModeHorizontal);
 		LinearGradientBrush brush_yo(Rect(0, 0, rect.Width(), rect.Height()), Color::Yellow, Color::Orange, LinearGradientModeHorizontal);
 		SolidBrush brush_white(Color::White);
+		SolidBrush brush_background(Color::MakeARGB(255, 240, 240, 240));
 		SolidBrush brush_white_alpha(Color::MakeARGB(200, 255, 255, 255));
 
-		Bitmap pMemBitmap(rect.Width(), rect.Height() - 50);
+		Bitmap pMemBitmap(rect.Width(), rect.Height());
 		Graphics* pMemGraphics = Graphics::FromImage(&pMemBitmap);
 		pMemGraphics->SetSmoothingMode(SmoothingMode::SmoothingModeAntiAlias);
+		pMemGraphics->FillRectangle(&brush_background, 0, 0, rect.Width(), rect.Height());
 		pMemGraphics->FillRectangle(&brush_white, 0, 0, rect.Width(), rect.Height() - 50);
 
 		CPaintDC dc(this);
 		Graphics graphics(dc.m_hDC);
 
-		if (first_run)
-		{
-			first_run = FALSE;
-			return;
-		}
 		WCHAR count_title[128];
 		wsprintf(count_title, L"Size of Segments = %d", sgmts.size());
 		draw_string(pMemGraphics, count_title, 5, 5, 500, 20, &brush_black);

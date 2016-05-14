@@ -14,7 +14,7 @@
 #define new DEBUG_NEW
 #endif
 
-#define RANGE 100000
+#define RANGE 1000000
 
 
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
@@ -76,6 +76,7 @@ BEGIN_MESSAGE_MAP(CGreatWallDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_CHECK_SHOW_COORDINATES, &CGreatWallDlg::OnBnClickedCheckShowCoordinates)
 	ON_BN_CLICKED(IDC_BUTTON_GENERATE, &CGreatWallDlg::OnBnClickedButtonGenerate)
 	ON_BN_CLICKED(IDC_BUTTON_IMPORT, &CGreatWallDlg::OnBnClickedButtonImport)
+//	ON_WM_CTLCOLOR()
 END_MESSAGE_MAP()
 
 
@@ -115,7 +116,6 @@ BOOL CGreatWallDlg::OnInitDialog()
 	show_guardians = FALSE;
 	show_upper_hull = FALSE;
 	show_coordinates = FALSE;
-	first_run = TRUE;
 	((CButton*)GetDlgItem(IDC_RADIO_RANDOM_MODE))->SetCheck(TRUE);
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -169,21 +169,18 @@ void CGreatWallDlg::OnPaint()
 		SolidBrush brush_black(Color::Black);
 		LinearGradientBrush brush_aqua(Rect(0, 0, rect.Width(), rect.Height()), Color::Aqua, Color::Blue, LinearGradientModeHorizontal);
 		SolidBrush brush_white(Color::White);
+		SolidBrush brush_background(Color::MakeARGB(255, 240, 240, 240));
 		SolidBrush brush_white_alpha(Color::MakeARGB(200, 255, 255, 255));
 
-		Bitmap pMemBitmap(rect.Width() - 300, rect.Height() - 50);
+		Bitmap pMemBitmap(rect.Width(), rect.Height());
 		Graphics* pMemGraphics = Graphics::FromImage(&pMemBitmap);
 		pMemGraphics->SetSmoothingMode(SmoothingMode::SmoothingModeAntiAlias);
+		pMemGraphics->FillRectangle(&brush_background, 0, 0, rect.Width(), rect.Height());
 		pMemGraphics->FillRectangle(&brush_white, 0, 0, rect.Width() - 300, rect.Height() - 50);
 
 		CPaintDC dc(this);
 		Graphics graphics(dc.m_hDC);
 
-		if (first_run)
-		{
-			first_run = FALSE;
-			return;
-		}
 		WCHAR count_title[128];
 		wsprintf(count_title, L"Size of Points = %d", pts.size());
 		draw_string(pMemGraphics, count_title, 5, 5, 500, 20, &brush_black);
@@ -371,19 +368,19 @@ void CGreatWallDlg::generate_guardians()
 
 bool CGreatWallDlg::to_left(point2d p1, point2d p2, point2d p3)
 {
-	long long a = p3.x - p1.x;
-	long long b = p2.y - p1.y;
-	long long c = p2.x - p1.x;
-	long long d = p3.y - p1.y;
+	ll a = p3.x - p1.x;
+	ll b = p2.y - p1.y;
+	ll c = p2.x - p1.x;
+	ll d = p3.y - p1.y;
 	return a * b - c * d < 0;
 }
 
 bool CGreatWallDlg::to_left_on(point2d p1, point2d p2, point2d p3)
 {
-	long long a = p3.x - p1.x;
-	long long b = p2.y - p1.y;
-	long long c = p2.x - p1.x;
-	long long d = p3.y - p1.y;
+	ll a = p3.x - p1.x;
+	ll b = p2.y - p1.y;
+	ll c = p2.x - p1.x;
+	ll d = p3.y - p1.y;
 	return a * b - c * d <= 0;
 }
 
@@ -448,6 +445,10 @@ void CGreatWallDlg::OnBnClickedButtonGenerate()
 	parser.compile(std::string(CT2CA(count_formula)), exp_count);
 	parser.compile(std::string(CT2CA(name_formula)), exp_name);
 
+	if (GetFileAttributes(_T("data")) == INVALID_FILE_ATTRIBUTES) {
+		CreateDirectory(_T("data"), NULL);
+	}
+
 	std::ostringstream oss;
 	oss << "Generation done!\n";
 	oss << "---------------------\n";
@@ -457,9 +458,9 @@ void CGreatWallDlg::OnBnClickedButtonGenerate()
 		int name = exp_name.value();
 
 		char input_name_str[128];
-		sprintf(input_name_str, "%d.in", name);
+		sprintf(input_name_str, "data/%d.in", name);
 		char output_name_str[128];
-		sprintf(output_name_str, "%d.out", name);
+		sprintf(output_name_str, "data/%d.out", name);
 
 		points input;
 		if (((CButton*)GetDlgItem(IDC_RADIO_RANDOM_MODE))->GetCheck())
@@ -492,9 +493,9 @@ void CGreatWallDlg::OnBnClickedButtonGenerate()
 	MessageBox(CA2CT(oss.str().c_str()), _T("Complete"));
 }
 
-int CGreatWallDlg::random_int(std::mt19937 &rng, int min, int max)
+ll CGreatWallDlg::random_int(std::mt19937 &rng, ll min, ll max)
 {
-	std::uniform_int_distribution<int> uni(min + 1, max - 1); // guaranteed unbiased
+	std::uniform_int_distribution<ll> uni(min + 1, max - 1); // guaranteed unbiased
 	return uni(rng);
 }
 
@@ -503,9 +504,9 @@ points CGreatWallDlg::random_input(int count)
 	std::random_device rd;     // only used once to initialise (seed) engine
 	std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
 	points input;
-	int slot = 2 * RANGE / count;
-	int x = random_int(rng, RANGE - slot, RANGE);
-	int y = random_int(rng, -RANGE, RANGE);
+	ll slot = 2 * RANGE / count;
+	ll x = random_int(rng, RANGE - slot, RANGE);
+	ll y = random_int(rng, -RANGE, RANGE);
 	input.push_back(point2d(x, y));
 	for (int i = 1; i < count; i++)
 	{
@@ -522,19 +523,19 @@ points CGreatWallDlg::convex_input(int count)
 	std::random_device rd;     // only used once to initialise (seed) engine
 	std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
 	points input;
-	int slot = 2 * RANGE / count;
-	int x = random_int(rng, RANGE - slot, RANGE);
-	int y = random_int(rng, -RANGE, RANGE);
+	ll slot = 2 * RANGE / count;
+	ll x = random_int(rng, RANGE - slot, RANGE);
+	ll y = random_int(rng, -RANGE, RANGE);
 	input.push_back(point2d(x, y));
 	for (int i = 1; i < count; i++)
 	{
-		int nx = random_int(rng, x - slot, x);
+		ll nx = random_int(rng, x - slot, x);
 		if (i > 1)
 		{
-			int lx = input.end()[-2].x;
-			int ly = input.end()[-2].y;
-			int ny_max = y - (x - nx) * ((ly - y) / (double)(lx - x));
-			y = random_int(rng, ny_max - slot, ny_max);
+			ll lx = input.end()[-2].x;
+			ll ly = input.end()[-2].y;
+			ll ny_max = y - (x - nx) * ((ly - y) / (double)(lx - x));
+			y = random_int(rng, ny_max - 100, ny_max);
 		}
 		else
 			y = random_int(rng, y, y + slot);
@@ -550,19 +551,19 @@ points CGreatWallDlg::concave_input(int count)
 	std::random_device rd;     // only used once to initialise (seed) engine
 	std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
 	points input;
-	int slot = 2 * RANGE / count;
-	int x = random_int(rng, RANGE - slot, RANGE);
-	int y = random_int(rng, -RANGE, RANGE);
+	ll slot = 2 * RANGE / count;
+	ll x = random_int(rng, RANGE - slot, RANGE);
+	ll y = random_int(rng, -RANGE, RANGE);
 	input.push_back(point2d(x, y));
 	for (int i = 1; i < count; i++)
 	{
 		int nx = random_int(rng, x - slot, x);
 		if (i > 1)
 		{
-			int lx = input.end()[-2].x;
-			int ly = input.end()[-2].y;
-			int ny_min = y - (x - nx) * ((ly - y) / (double)(lx - x));
-			y = random_int(rng, ny_min, ny_min + slot);
+			ll lx = input.end()[-2].x;
+			ll ly = input.end()[-2].y;
+			ll ny_min = y - (x - nx) * ((ly - y) / (double)(lx - x));
+			y = random_int(rng, ny_min, ny_min + 100);
 		}
 		else
 			y = random_int(rng, y - slot, y);
@@ -613,11 +614,11 @@ void CGreatWallDlg::OnBnClickedButtonImport()
 		std::ifstream input(dlg.GetPathName(), std::ifstream::in);
 		int count;
 		input >> count;
-		int min_x = 9999999, max_x = -9999999;
-		int min_y = 9999999, max_y = -9999999;
+		ll min_x = 9999999, max_x = -9999999;
+		ll min_y = 9999999, max_y = -9999999;
 		for (int i = 0; i < count; i++)
 		{
-			int x, y;
+			ll x, y;
 			input >> x >> y;
 			pts.push_back(point2d(x, y));
 

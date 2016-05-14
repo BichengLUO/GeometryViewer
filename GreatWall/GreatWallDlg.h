@@ -6,11 +6,13 @@
 #include <vector>
 #include <random>
 
+typedef long long ll;
+
 typedef struct _point2d
 {
-	int x;
-	int y;
-	_point2d(int xp, int yp) : x(xp), y(yp){}
+	ll x;
+	ll y;
+	_point2d(ll xp, ll yp) : x(xp), y(yp){}
 } point2d;
 
 typedef std::vector<point2d> points;
@@ -32,7 +34,6 @@ public:
 	points pts;
 	guardians gds;
 	std::vector<int> hull;
-	BOOL first_run;
 	BOOL show_guardians;
 	BOOL show_upper_hull;
 	BOOL show_coordinates;
@@ -55,7 +56,7 @@ public:
 	void redraw();
 	void generate_guardians();
 	int generate_guardians_pts(const points &pts);
-	int random_int(std::mt19937 &rng, int min, int max);
+	ll random_int(std::mt19937 &rng, ll min, ll max);
 	points random_input(int count);
 	points convex_input(int count);
 	points concave_input(int count);
@@ -67,4 +68,5 @@ public:
 	afx_msg void OnBnClickedCheckShowCoordinates();
 	afx_msg void OnBnClickedButtonGenerate();
 	afx_msg void OnBnClickedButtonImport();
+//	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 };
