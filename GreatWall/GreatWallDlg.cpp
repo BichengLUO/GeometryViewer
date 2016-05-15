@@ -611,13 +611,15 @@ points CGreatWallDlg::tangent_input(int count)
 	input.push_back(point2d(x, y));
 	ll xk = x - x1;
 	ll yk = y - y1;
+	ll nx = x;
+	ll ny = y;
 	for (int i = 2; i < count; i++)
 	{
-		ll nx = x + xk;
-		ll ny = y + yk;
+		nx = nx + xk;
+		ny = ny + yk;
 		x = nx;
 		if (random_int(rng, 0, 4) == 1)
-			y = random_int(rng, ny - slot, ny + slot);
+			y = random_int(rng, ny - slot, ny);
 		else
 			y = ny;
 		input.push_back(point2d(x, y));
