@@ -37,6 +37,8 @@ public:
 	BOOL show_guardians;
 	BOOL show_upper_hull;
 	BOOL show_coordinates;
+	ll range;
+	bool import_mode;
 
 // й╣ож
 protected:

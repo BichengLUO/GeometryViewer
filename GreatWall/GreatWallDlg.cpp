@@ -14,8 +14,6 @@
 #define new DEBUG_NEW
 #endif
 
-#define RANGE 1000000
-
 
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
 
@@ -117,6 +115,12 @@ BOOL CGreatWallDlg::OnInitDialog()
 	show_upper_hull = FALSE;
 	show_coordinates = FALSE;
 	((CButton*)GetDlgItem(IDC_RADIO_RANDOM_MODE))->SetCheck(TRUE);
+	range = 1000000;
+	import_mode = false;
+	GetDlgItem(IDC_EDIT_NUMBER)->SetWindowText(_T("10"));
+	GetDlgItem(IDC_EDIT_COUNT_FORMULA)->SetWindowText(_T("100+10*i"));
+	GetDlgItem(IDC_EDIT_NAME_FORMULA)->SetWindowText(_T("i+1"));
+	GetDlgItem(IDC_EDIT_RANGE)->SetWindowText(_T("1000000"));
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
@@ -168,6 +172,7 @@ void CGreatWallDlg::OnPaint()
 		SolidBrush brush_red(Color::Red);
 		SolidBrush brush_black(Color::Black);
 		LinearGradientBrush brush_aqua(Rect(0, 0, rect.Width(), rect.Height()), Color::Aqua, Color::Blue, LinearGradientModeHorizontal);
+		LinearGradientBrush brush_orange(Rect(0, 0, rect.Width(), rect.Height()), Color::Orange, Color::Red, LinearGradientModeHorizontal);
 		SolidBrush brush_white(Color::White);
 		SolidBrush brush_background(Color::MakeARGB(255, 240, 240, 240));
 		SolidBrush brush_white_alpha(Color::MakeARGB(200, 255, 255, 255));
@@ -184,6 +189,8 @@ void CGreatWallDlg::OnPaint()
 		WCHAR count_title[128];
 		wsprintf(count_title, L"Size of Points = %d", pts.size());
 		draw_string(pMemGraphics, count_title, 5, 5, 500, 20, &brush_black);
+		if (import_mode)
+			draw_string(pMemGraphics, L"Import Mode: [ON]", rect.Width() - 480, 5, 500, 20, &brush_red);
 		if (pts.size() > 0)
 		{
 			if (pts.size() > 1)
@@ -193,7 +200,10 @@ void CGreatWallDlg::OnPaint()
 					array[i] = Point(pts[i].x, rect.Height() - pts[i].y);
 				array[pts.size()] = Point(array[pts.size() - 1].X, 800);
 				array[pts.size() + 1] = Point(array[0].X, 800);
-				pMemGraphics->FillPolygon(&brush_aqua, array, pts.size() + 2);
+				if (import_mode)
+					pMemGraphics->FillPolygon(&brush_orange, array, pts.size() + 2);
+				else
+					pMemGraphics->FillPolygon(&brush_aqua, array, pts.size() + 2);
 				delete[] array;
 			}
 			if (show_coordinates)
@@ -243,8 +253,11 @@ void CGreatWallDlg::OnPaint()
 				int nx = pts[i - 1].x;
 				int ny = pts[i - 1].y;
 
-				pMemGraphics->FillEllipse(&brush_black, x - 3, rect.Height() - y - 3, 6, 6);
-				pMemGraphics->DrawLine(&pen, x, rect.Height() - y, nx, rect.Height() - ny);
+				if (!import_mode)
+				{
+					pMemGraphics->FillEllipse(&brush_black, x - 3, rect.Height() - y - 3, 6, 6);
+					pMemGraphics->DrawLine(&pen, x, rect.Height() - y, nx, rect.Height() - ny);
+				}
 			}
 
 			if (show_guardians)
@@ -315,7 +328,9 @@ void CGreatWallDlg::OnBnClickedButtonClear()
 	// TODO:  在此添加控件通知处理程序代码
 	pts.clear();
 	gds.clear();
-
+	import_mode = false;
+	GetDlgItem(IDC_BUTTON_UNDO)->EnableWindow(TRUE);
+	GetDlgItem(IDC_CHECK_SHOW_COORDINATES)->EnableWindow(TRUE);
 	redraw();
 }
 
@@ -323,19 +338,22 @@ void CGreatWallDlg::OnBnClickedButtonClear()
 void CGreatWallDlg::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	// TODO:  在此添加消息处理程序代码和/或调用默认值
-	CRect rect;
-	GetClientRect(&rect);
-
-	CRect rect2 = rect;
-	rect2.right -= 300;
-	rect2.bottom -= 50;
-
-	if (rect2.PtInRect(point) && (pts.size() == 0 || point.x < pts[pts.size() - 1].x))
+	if (!import_mode)
 	{
-		pts.push_back(point2d(point.x, rect.Height() - point.y));
-		generate_guardians();
+		CRect rect;
+		GetClientRect(&rect);
 
-		redraw();
+		CRect rect2 = rect;
+		rect2.right -= 300;
+		rect2.bottom -= 50;
+
+		if (rect2.PtInRect(point) && (pts.size() == 0 || point.x < pts[pts.size() - 1].x))
+		{
+			pts.push_back(point2d(point.x, rect.Height() - point.y));
+			generate_guardians();
+
+			redraw();
+		}
 	}
 	CDialogEx::OnLButtonDown(nFlags, point);
 }
@@ -431,6 +449,10 @@ void CGreatWallDlg::OnBnClickedButtonGenerate()
 	CString name_formula;
 	GetDlgItem(IDC_EDIT_NAME_FORMULA)->GetWindowText(name_formula);
 
+	CString range_str;
+	GetDlgItem(IDC_EDIT_RANGE)->GetWindowText(range_str);
+	range = _ttoi64(range_str);
+
 	symbol_table_t symbol_table;
 	symbol_table.add_variable("i", i);
 	symbol_table.add_constants();
@@ -485,7 +507,7 @@ void CGreatWallDlg::OnBnClickedButtonGenerate()
 		std::ofstream output_file(output_name_str, std::ofstream::out);
 
 		input_file << count << std::endl;
-		for (int j = count - 1; j >= 0; j--)
+		for (int j = 0; j < count; j++)
 			input_file << (int)input[j].x << " " << (int)input[j].y << std::endl;
 		output_file << output;
 	}
@@ -504,14 +526,14 @@ points CGreatWallDlg::random_input(int count)
 	std::random_device rd;     // only used once to initialise (seed) engine
 	std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
 	points input;
-	ll slot = 2 * RANGE / count;
-	ll x = random_int(rng, RANGE - slot, RANGE);
-	ll y = random_int(rng, -RANGE, RANGE);
+	ll slot = 2 * range / count;
+	ll x = random_int(rng, range - slot, range);
+	ll y = random_int(rng, -range, range);
 	input.push_back(point2d(x, y));
 	for (int i = 1; i < count; i++)
 	{
 		x = random_int(rng, x - slot, x);
-		y = random_int(rng, -RANGE, RANGE);
+		y = random_int(rng, -range, range);
 		input.push_back(point2d(x, y));
 	}
 	return input;
@@ -523,9 +545,9 @@ points CGreatWallDlg::convex_input(int count)
 	std::random_device rd;     // only used once to initialise (seed) engine
 	std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
 	points input;
-	ll slot = 2 * RANGE / count;
-	ll x = random_int(rng, RANGE - slot, RANGE);
-	ll y = random_int(rng, -RANGE, RANGE);
+	ll slot = 2 * range / count;
+	ll x = random_int(rng, range - slot, range);
+	ll y = random_int(rng, -range, range);
 	input.push_back(point2d(x, y));
 	for (int i = 1; i < count; i++)
 	{
@@ -535,7 +557,7 @@ points CGreatWallDlg::convex_input(int count)
 			ll lx = input.end()[-2].x;
 			ll ly = input.end()[-2].y;
 			ll ny_max = y - (x - nx) * ((ly - y) / (double)(lx - x));
-			y = random_int(rng, ny_max - 100, ny_max);
+			y = random_int(rng, ny_max - 10, ny_max);
 		}
 		else
 			y = random_int(rng, y, y + slot);
@@ -551,9 +573,9 @@ points CGreatWallDlg::concave_input(int count)
 	std::random_device rd;     // only used once to initialise (seed) engine
 	std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
 	points input;
-	ll slot = 2 * RANGE / count;
-	ll x = random_int(rng, RANGE - slot, RANGE);
-	ll y = random_int(rng, -RANGE, RANGE);
+	ll slot = 2 * range / count;
+	ll x = random_int(rng, range - slot, range);
+	ll y = random_int(rng, -range, range);
 	input.push_back(point2d(x, y));
 	for (int i = 1; i < count; i++)
 	{
@@ -563,7 +585,7 @@ points CGreatWallDlg::concave_input(int count)
 			ll lx = input.end()[-2].x;
 			ll ly = input.end()[-2].y;
 			ll ny_min = y - (x - nx) * ((ly - y) / (double)(lx - x));
-			y = random_int(rng, ny_min, ny_min + 100);
+			y = random_int(rng, ny_min, ny_min + 10);
 		}
 		else
 			y = random_int(rng, y - slot, y);
@@ -627,13 +649,15 @@ void CGreatWallDlg::OnBnClickedButtonImport()
 			min_y = min(y, min_y);
 			max_y = max(y, max_y);
 		}
-		std::reverse(std::begin(pts), std::end(pts));
 		generate_guardians();
 		for (int i = 0; i < count; i++)
 		{
 			pts[i].x = ((pts[i].x - min_x) / (double)(max_x - min_x)) * (rect.Width() - 340) + 20;
 			pts[i].y = ((pts[i].y - min_y) / (double)(max_y - min_y)) * (rect.Height() - 90) + 70;
 		}
+		import_mode = true;
+		GetDlgItem(IDC_BUTTON_UNDO)->EnableWindow(FALSE);
+		GetDlgItem(IDC_CHECK_SHOW_COORDINATES)->EnableWindow(FALSE);
 		redraw();
 	}
 	else return;
