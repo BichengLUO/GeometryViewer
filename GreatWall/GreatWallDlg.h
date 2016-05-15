@@ -62,6 +62,7 @@ public:
 	points random_input(int count);
 	points convex_input(int count);
 	points concave_input(int count);
+	points tangent_input(int count);
 	bool to_left(point2d p1, point2d p2, point2d p3);
 	bool to_left_on(point2d p1, point2d p2, point2d p3);
 	afx_msg void OnBnClickedCheckShowUpperHull();

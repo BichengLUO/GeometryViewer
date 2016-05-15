@@ -491,6 +491,8 @@ void CGreatWallDlg::OnBnClickedButtonGenerate()
 			input = convex_input(count);
 		else if (((CButton*)GetDlgItem(IDC_RADIO_CONCAVE_MODE))->GetCheck())
 			input = concave_input(count);
+		else if (((CButton*)GetDlgItem(IDC_RADIO_TANGENT_MODE))->GetCheck())
+			input = tangent_input(count);
 
 		LARGE_INTEGER BeginTime;
 		LARGE_INTEGER EndTime;
@@ -579,7 +581,7 @@ points CGreatWallDlg::concave_input(int count)
 	input.push_back(point2d(x, y));
 	for (int i = 1; i < count; i++)
 	{
-		int nx = random_int(rng, x - slot, x);
+		ll nx = random_int(rng, x - slot, x);
 		if (i > 1)
 		{
 			ll lx = input.end()[-2].x;
@@ -590,6 +592,34 @@ points CGreatWallDlg::concave_input(int count)
 		else
 			y = random_int(rng, y - slot, y);
 		x = nx;
+		input.push_back(point2d(x, y));
+	}
+	return input;
+}
+
+points CGreatWallDlg::tangent_input(int count)
+{
+	std::random_device rd;     // only used once to initialise (seed) engine
+	std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
+	points input;
+	ll slot = 2 * range / count;
+	ll x1 = random_int(rng, range - slot, range);
+	ll y1 = random_int(rng, -range, range);
+	input.push_back(point2d(x1, y1));
+	ll x = random_int(rng, x1 - slot, x1);
+	ll y = random_int(rng, y1 - slot, y1 + slot);
+	input.push_back(point2d(x, y));
+	ll xk = x - x1;
+	ll yk = y - y1;
+	for (int i = 2; i < count; i++)
+	{
+		ll nx = x + xk;
+		ll ny = y + yk;
+		x = nx;
+		if (random_int(rng, 0, 4) == 1)
+			y = random_int(rng, ny - slot, ny + slot);
+		else
+			y = ny;
 		input.push_back(point2d(x, y));
 	}
 	return input;
