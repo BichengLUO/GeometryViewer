@@ -101,6 +101,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="exprtk.hpp" />
     <ClInclude Include="FruitNinja.h" />
     <ClInclude Include="FruitNinjaDlg.h" />
     <ClInclude Include="Resource.h" />

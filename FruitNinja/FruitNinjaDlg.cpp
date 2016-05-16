@@ -68,6 +68,8 @@ BEGIN_MESSAGE_MAP(CFruitNinjaDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_CLEAR, &CFruitNinjaDlg::OnBnClickedButtonClear)
 	ON_BN_CLICKED(IDC_BUTTON_UNDO, &CFruitNinjaDlg::OnBnClickedButtonUndo)
 	ON_BN_CLICKED(IDC_CHECK_SHOW_COORDINATES, &CFruitNinjaDlg::OnBnClickedCheckShowCoordinates)
+	ON_BN_CLICKED(IDC_BUTTON_IMPORT, &CFruitNinjaDlg::OnBnClickedButtonImport)
+	ON_BN_CLICKED(IDC_BUTTON_GENERATE, &CFruitNinjaDlg::OnBnClickedButtonGenerate)
 END_MESSAGE_MAP()
 
 
@@ -123,9 +125,15 @@ BOOL CFruitNinjaDlg::OnInitDialog()
 
 	CRect rect;
 	GetClientRect(&rect);
-	dg = Rect(rect.Width() - 405, rect.Height() - 355, 400, 300);
+	dg = Rect(rect.Width() - 705, rect.Height() - 355, 400, 300);
 	in_dg = FALSE;
 	show_coordinates = FALSE;
+	range = 1000000;
+	import_mode = false;
+	GetDlgItem(IDC_EDIT_NUMBER)->SetWindowText(_T("10"));
+	GetDlgItem(IDC_EDIT_COUNT_FORMULA)->SetWindowText(_T("100+10*i"));
+	GetDlgItem(IDC_EDIT_NAME_FORMULA)->SetWindowText(_T("i+1"));
+	GetDlgItem(IDC_EDIT_RANGE)->SetWindowText(_T("1000000"));
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
@@ -192,7 +200,7 @@ void CFruitNinjaDlg::OnPaint()
 		Graphics* pMemGraphics = Graphics::FromImage(&pMemBitmap);
 		pMemGraphics->SetSmoothingMode(SmoothingMode::SmoothingModeAntiAlias);
 		pMemGraphics->FillRectangle(&brush_background, 0, 0, rect.Width(), rect.Height());
-		pMemGraphics->FillRectangle(&brush_white, 0, 0, rect.Width(), rect.Height() - 50);
+		pMemGraphics->FillRectangle(&brush_white, 0, 0, rect.Width() - 300, rect.Height() - 50);
 
 		CPaintDC dc(this);
 		Graphics graphics(dc.m_hDC);
@@ -355,7 +363,11 @@ BOOL CFruitNinjaDlg::OnEraseBkgnd(CDC* pDC)
 void CFruitNinjaDlg::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	// TODO:  在此添加消息处理程序代码和/或调用默认值
-	if (!dg.Contains(Point(point.x, point.y)))
+	CRect rect;
+	GetClientRect(&rect);
+	rect.right -= 300;
+	rect.bottom -= 50;
+	if (rect.PtInRect(point) && !dg.Contains(Point(point.x, point.y)))
 	{
 		if (sgmts.size() > 0)
 		{
@@ -384,12 +396,12 @@ void CFruitNinjaDlg::update_convex_hull()
 {
 	if (sgmts.size() == 2)
 	{
-		int x1 = sgmts[0].x;
-		int y1 = sgmts[0].y;
-		int len1 = sgmts[0].len;
-		int x2 = sgmts[1].x;
-		int y2 = sgmts[1].y;
-		int len2 = sgmts[1].len;
+		ll x1 = sgmts[0].x;
+		ll y1 = sgmts[0].y;
+		ll len1 = sgmts[0].len;
+		ll x2 = sgmts[1].x;
+		ll y2 = sgmts[1].y;
+		ll len2 = sgmts[1].len;
 
 		double xx1, yy1;
 		intersect(x1, y1, x2, y2, &xx1, &yy1);
@@ -417,9 +429,9 @@ void CFruitNinjaDlg::update_convex_hull()
 	}
 	else if (sgmts.size() > 2)
 	{
-		int x = sgmts.end()[-1].x;
-		int y = sgmts.end()[-1].y;
-		int len = sgmts.end()[-1].len;
+		ll x = sgmts.end()[-1].x;
+		ll y = sgmts.end()[-1].y;
+		ll len = sgmts.end()[-1].len;
 
 		hull new_convex_hull = cut_convex_hull(convex_hull, x, y, false);
 		new_convex_hull = cut_convex_hull(new_convex_hull, x, y + len, true);
@@ -471,6 +483,7 @@ void CFruitNinjaDlg::redraw()
 {
 	CRect rect;
 	GetClientRect(&rect);
+	rect.right -= 300;
 	rect.bottom -= 50;
 	InvalidateRect(rect);
 }
@@ -579,4 +592,16 @@ void CFruitNinjaDlg::OnBnClickedCheckShowCoordinates()
 	else
 		show_coordinates = FALSE;
 	redraw();
+}
+
+
+void CFruitNinjaDlg::OnBnClickedButtonImport()
+{
+	// TODO:  在此添加控件通知处理程序代码
+}
+
+
+void CFruitNinjaDlg::OnBnClickedButtonGenerate()
+{
+	// TODO:  在此添加控件通知处理程序代码
 }

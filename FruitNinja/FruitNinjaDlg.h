@@ -5,12 +5,14 @@
 #pragma once
 #include <vector>
 
+typedef long long ll;
+
 typedef struct _point2d
 {
-	int x;
-	int y;
+	ll x;
+	ll y;
 	_point2d() : x(0), y(0) {}
-	_point2d(int xp, int yp) : x(xp), y(yp) {}
+	_point2d(ll xp, ll yp) : x(xp), y(yp) {}
 } point2d;
 
 typedef struct _point2df
@@ -23,10 +25,10 @@ typedef struct _point2df
 
 typedef struct _segment
 {
-	int x;
-	int y;
-	int len;
-	_segment(int xp, int yp, int lenp) : x(xp), y(yp), len(lenp){}
+	ll x;
+	ll y;
+	ll len;
+	_segment(ll xp, ll yp, ll lenp) : x(xp), y(yp), len(lenp){}
 } segment;
 
 typedef std::vector<segment> segments;
@@ -54,6 +56,9 @@ public:
 	BOOL show_coordinates;
 	Point dg_point;
 	double dg_point_a, dg_point_b;
+	ll range;
+	bool import_mode;
+
 
 // й╣ож
 protected:
@@ -80,4 +85,6 @@ public:
 	hull cut_convex_hull(const hull &ch, double a, double b, bool top);
 	afx_msg void OnBnClickedButtonUndo();
 	afx_msg void OnBnClickedCheckShowCoordinates();
+	afx_msg void OnBnClickedButtonImport();
+	afx_msg void OnBnClickedButtonGenerate();
 };

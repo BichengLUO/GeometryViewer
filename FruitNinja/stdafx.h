@@ -55,3 +55,9 @@
 #include <gdiplus.h>
 using namespace Gdiplus;
 #pragma comment(lib, "gdiplus.lib")
+
+#include "exprtk.hpp"
+
+typedef exprtk::symbol_table<double> symbol_table_t;
+typedef exprtk::expression<double> expression_t;
+typedef exprtk::parser<double> parser_t;
