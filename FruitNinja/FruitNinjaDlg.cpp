@@ -134,6 +134,8 @@ BOOL CFruitNinjaDlg::OnInitDialog()
 	GetDlgItem(IDC_EDIT_COUNT_FORMULA)->SetWindowText(_T("100+10*i"));
 	GetDlgItem(IDC_EDIT_NAME_FORMULA)->SetWindowText(_T("i+1"));
 	GetDlgItem(IDC_EDIT_RANGE)->SetWindowText(_T("1000000"));
+	GetDlgItem(IDC_EDIT_YES_COUNT)->SetWindowText(_T("3"));
+	GetDlgItem(IDC_EDIT_NO_COUNT)->SetWindowText(_T("2"));
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 

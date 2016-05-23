@@ -493,6 +493,10 @@ void CGreatWallDlg::OnBnClickedButtonGenerate()
 			input = concave_input(count);
 		else if (((CButton*)GetDlgItem(IDC_RADIO_TANGENT_MODE))->GetCheck())
 			input = tangent_input(count);
+		else if (((CButton*)GetDlgItem(IDC_RADIO_HUGE_CONVEX))->GetCheck())
+			input = huge_convex_input(count);
+		else if (((CButton*)GetDlgItem(IDC_RADIO_HUGE_CONCAVE))->GetCheck())
+			input = huge_concave_input(count);
 
 		LARGE_INTEGER BeginTime;
 		LARGE_INTEGER EndTime;
@@ -569,6 +573,33 @@ points CGreatWallDlg::convex_input(int count)
 	return input;
 }
 
+points CGreatWallDlg::huge_convex_input(int count)
+{
+	std::random_device rd;     // only used once to initialise (seed) engine
+	std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
+	points input;
+	ll slot = 2 * range / count;
+	ll x = random_int(rng, range - slot, range);
+	ll y = random_int(rng, -range, 10 - range);
+	input.push_back(point2d(x, y));
+	for (int i = 1; i < count; i++)
+	{
+		ll nx = x - 1;
+		if (i > 1)
+		{
+			ll lx = input.end()[-2].x;
+			ll ly = input.end()[-2].y;
+			ll ny_max = y - (x - nx) * ((ly - y) / (double)(lx - x));
+			y = ny_max - 1;
+		}
+		else
+			y = y + 1000;
+		x = nx;
+		input.push_back(point2d(x, y));
+	}
+	return input;
+}
+
 
 points CGreatWallDlg::concave_input(int count)
 {
@@ -591,6 +622,33 @@ points CGreatWallDlg::concave_input(int count)
 		}
 		else
 			y = random_int(rng, y - slot, y);
+		x = nx;
+		input.push_back(point2d(x, y));
+	}
+	return input;
+}
+
+points CGreatWallDlg::huge_concave_input(int count)
+{
+	std::random_device rd;     // only used once to initialise (seed) engine
+	std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
+	points input;
+	ll slot = 2 * range / count;
+	ll x = random_int(rng, range - slot, range);
+	ll y = random_int(rng, range - 10, range);
+	input.push_back(point2d(x, y));
+	for (int i = 1; i < count; i++)
+	{
+		ll nx = x - 1;
+		if (i > 1)
+		{
+			ll lx = input.end()[-2].x;
+			ll ly = input.end()[-2].y;
+			ll ny_min = y - (x - nx) * ((ly - y) / (double)(lx - x));
+			y = ny_min + 1;
+		}
+		else
+			y = y - 1000;
 		x = nx;
 		input.push_back(point2d(x, y));
 	}
