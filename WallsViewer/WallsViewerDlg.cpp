@@ -184,32 +184,58 @@ void CWallsViewerDlg::OnPaint()
 		TCHAR buffer[100];
 		SetBkMode(memDC, TRANSPARENT);
 
+		int selected = queries_list_box.GetCurSel();
+
 		CPen *pOldPen;
 		CBrush *pOldBrush;
 
 		CPen pen(PS_SOLID, 1, RGB(0, 0, 0));
-		pOldPen = memDC.SelectObject(&pen);
-		int selected = queries_list_box.GetCurSel();
-		for (int i = 0; i < point_queries.size(); i++)
-		{
-			CBrush brush2(RGB(255, 200, 100));
-			pOldBrush = memDC.SelectObject(&brush2);
-			double x = scale_dim_x(point_queries[i].x);
-			double y = scale_dim_y(point_queries[i].y);
-			memDC.Ellipse(x - 3, y - 3, x + 3, y + 3);
-			memDC.SelectObject(pOldBrush);
-		}
-		memDC.SelectObject(pOldPen);
-
-		CBrush brush1(RGB(255, 100, 100));
 		CPen redPen(PS_SOLID, 2, RGB(255, 0, 0));
 		CPen grayPen(PS_SOLID, 1, RGB(180, 180, 180));
 		CPen blackPen(PS_SOLID, 1, RGB(0, 0, 0));
+
+		CBrush brush1(RGB(255, 100, 100));
+		CBrush brush2(RGB(255, 200, 100));
+		
+		double range = dim_max - dim_min;
+		for (int i = 0; i < point_queries.size(); i++)
+		{		
+			if (show_results && selected == i)
+				pOldPen = memDC.SelectObject(&redPen);
+			else if (show_results && selected != i)
+				pOldPen = memDC.SelectObject(&grayPen);
+			else
+				pOldPen = memDC.SelectObject(&blackPen);
+
+			CBrush *brush_vis = NULL;
+			if (show_results && i < queries_result.size() && queries_result[i] == -1)
+				pOldBrush = memDC.SelectObject(&brush2);
+			else if (show_results && i < queries_result.size())
+			{
+				seg &s = segments[queries_result[i]];
+				int rc = (s.x + s.u - 2 * dim_min) / 2.0 * 255 / range;
+				int gc = (s.y + s.v - 2 * dim_min) / 2.0 * 255 / range;
+				int bc = (s.x + s.u - 2 * dim_min) / 2.0 * 255 / range;
+				brush_vis = new CBrush(RGB(rc, gc, bc));
+				pOldBrush = memDC.SelectObject(brush_vis);
+			}
+			else
+				pOldBrush = memDC.SelectObject(&brush2);
+
+			double x = scale_dim_x(point_queries[i].x);
+			double y = scale_dim_y(point_queries[i].y);
+			memDC.Ellipse(x - 3, y - 3, x + 3, y + 3);
+
+			memDC.SelectObject(pOldBrush);
+			memDC.SelectObject(pOldPen);
+			delete brush_vis;
+		}
+		
 		pOldBrush = memDC.SelectObject(&brush1);
 		for (int i = 0; i < segments.size(); i++)
 		{
 			if (show_results && selected != -1 && selected < queries_result.size() &&
-				queries_result[selected] != i)
+				queries_result[selected] == i)
 			{
 				pOldPen = memDC.SelectObject(&redPen);
 				memDC.SetTextColor(RGB(255, 0, 0));
@@ -339,9 +365,13 @@ void CWallsViewerDlg::OnBnClickedButtonOpenResults()
 		std::string line;
 		while (std::getline(input, line))
 		{
-			std::stringstream ss(line);
-			int seg_id;
-			ss >> seg_id;
+			int seg_id = -1;
+			if (line[0] != 'N')
+			{
+				std::stringstream ss(line);
+				ss >> seg_id;
+				seg_id--;
+			}
 			queries_result.push_back(seg_id);
 		}
 		show_results_btn.EnableWindow(TRUE);
