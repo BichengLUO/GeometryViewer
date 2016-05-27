@@ -4,6 +4,7 @@
 
 #pragma once
 #include <vector>
+#include <random>
 
 typedef long long ll;
 
@@ -78,11 +79,18 @@ public:
 	void redraw();
 	void draw_string(Graphics* pMemGraphics, TCHAR *str, int x, int y, int width, int height, Brush *brush);
 	void draw_convex_hull(Graphics* pMemGraphics, Pen *pen, Brush *brush);
+
+	char gen_convex_hull_sgmts(const segments &input);
 	void update_convex_hull();
 	void intersect(double x1, double y1, double x2, double y2, double *x, double *y);
 	bool is_intersect(point2df p1, point2df p2, double a, double b);
 	void intersect(point2df p1, point2df p2, double a, double b, double *x, double *y);
 	hull cut_convex_hull(const hull &ch, double a, double b, bool top);
+
+	ll random_int(std::mt19937 &rng, ll min, ll max);
+	segments yes_input(int count);
+	segments no_input(int count);
+
 	afx_msg void OnBnClickedButtonUndo();
 	afx_msg void OnBnClickedCheckShowCoordinates();
 	afx_msg void OnBnClickedButtonImport();

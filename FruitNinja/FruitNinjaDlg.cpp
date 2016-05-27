@@ -6,6 +6,8 @@
 #include "FruitNinja.h"
 #include "FruitNinjaDlg.h"
 #include "afxdialogex.h"
+#include <fstream>
+#include <algorithm>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -394,6 +396,45 @@ void CFruitNinjaDlg::OnLButtonDown(UINT nFlags, CPoint point)
 	CDialogEx::OnLButtonDown(nFlags, point);
 }
 
+char CFruitNinjaDlg::gen_convex_hull_sgmts(const segments &input)
+{
+	if (input.size() <= 2)
+		return 'Y';
+
+	hull ch;
+	ll x1 = input[0].x;
+	ll y1 = input[0].y;
+	ll len1 = input[0].len;
+	ll x2 = input[1].x;
+	ll y2 = input[1].y;
+	ll len2 = input[1].len;
+
+	double xx1, yy1;
+	intersect(x1, y1, x2, y2, &xx1, &yy1);
+	double xx2, yy2;
+	intersect(x1, y1, x2, y2 + len2, &xx2, &yy2);
+	double xx3, yy3;
+	intersect(x1, y1 + len1, x2, y2 + len2, &xx3, &yy3);
+	double xx4, yy4;
+	intersect(x1, y1 + len1, x2, y2, &xx4, &yy4);
+
+	ch.push_back(point2df(xx1, yy1));
+	ch.push_back(point2df(xx2, yy2));
+	ch.push_back(point2df(xx3, yy3));
+	ch.push_back(point2df(xx4, yy4));
+
+	for (int i = 2; i < input.size(); i++)
+	{
+		ll x = input[i].x;
+		ll y = input[i].y;
+		ll len = input[i].len;
+
+		hull nch = cut_convex_hull(ch, x, y, false);
+		ch = cut_convex_hull(nch, x, y + len, true);
+	}
+	return ch.size() > 0 ? 'Y' : 'N';
+}
+
 void CFruitNinjaDlg::update_convex_hull()
 {
 	if (sgmts.size() == 2)
@@ -606,4 +647,160 @@ void CFruitNinjaDlg::OnBnClickedButtonImport()
 void CFruitNinjaDlg::OnBnClickedButtonGenerate()
 {
 	// TODO:  在此添加控件通知处理程序代码
+	double i;
+	CString number_str;
+	GetDlgItem(IDC_EDIT_NUMBER)->GetWindowText(number_str);
+	int number = _ttoi(number_str);
+
+	CString yes_count_str;
+	GetDlgItem(IDC_EDIT_YES_COUNT)->GetWindowText(yes_count_str);
+	int yes_count = _ttoi(yes_count_str);
+
+	CString no_count_str;
+	GetDlgItem(IDC_EDIT_NO_COUNT)->GetWindowText(no_count_str);
+	int no_count = _ttoi(no_count_str);
+
+	CString count_formula;
+	GetDlgItem(IDC_EDIT_COUNT_FORMULA)->GetWindowText(count_formula);
+	CString name_formula;
+	GetDlgItem(IDC_EDIT_NAME_FORMULA)->GetWindowText(name_formula);
+
+	CString range_str;
+	GetDlgItem(IDC_EDIT_RANGE)->GetWindowText(range_str);
+	range = _ttoi64(range_str);
+
+	symbol_table_t symbol_table;
+	symbol_table.add_variable("i", i);
+	symbol_table.add_constants();
+
+	expression_t exp_count;
+	exp_count.register_symbol_table(symbol_table);
+
+	expression_t exp_name;
+	exp_name.register_symbol_table(symbol_table);
+
+	parser_t parser;
+	parser.compile(std::string(CT2CA(count_formula)), exp_count);
+	parser.compile(std::string(CT2CA(name_formula)), exp_name);
+
+	if (GetFileAttributes(_T("data")) == INVALID_FILE_ATTRIBUTES) {
+		CreateDirectory(_T("data"), NULL);
+	}
+
+	std::ostringstream oss;
+	oss << "Generation done!\n";
+	oss << "---------------------\n";
+	for (i = 0; i < number; i += 1)
+	{
+		int count = exp_count.value();
+		int name = exp_name.value();
+
+		char input_name_str[128];
+		sprintf(input_name_str, "data/%d.in", name);
+		char output_name_str[128];
+		sprintf(output_name_str, "data/%d.out", name);
+
+		std::vector<segments> input;
+		std::string ynstr;
+		for (int j = 0; j < yes_count; j++)
+			input.push_back(yes_input(count));
+		for (int j = 0; j < no_count; j++)
+			input.push_back(no_input(count));
+		std::random_shuffle(input.begin(), input.end());
+
+		LARGE_INTEGER BeginTime;
+		LARGE_INTEGER EndTime;
+		LARGE_INTEGER Frequency;
+
+		QueryPerformanceFrequency(&Frequency);
+		QueryPerformanceCounter(&BeginTime);
+		for (int j = 0; j < yes_count + no_count; j++)
+			ynstr += gen_convex_hull_sgmts(input[j]);
+		QueryPerformanceCounter(&EndTime);
+		float tm = (float)(EndTime.QuadPart - BeginTime.QuadPart) / Frequency.QuadPart;
+		oss << "(" << i + 1 << ") " << name << ".in [size: " << count << "] --> " << name << ".out [" << ynstr << "] Time: " << tm << "s\n";
+
+		std::ofstream input_file(input_name_str, std::ofstream::out);
+		std::ofstream output_file(output_name_str, std::ofstream::out);
+
+		input_file << yes_count + no_count << std::endl;
+		for (int j = 0; j < yes_count + no_count; j++)
+		{
+			input_file << count << std::endl;
+			for (auto &sgmt : input[j])
+				input_file << sgmt.x << " " << sgmt.y << " " << sgmt.y + sgmt.len << std::endl;
+		}
+		output_file << ynstr;
+	}
+	MessageBox(CA2CT(oss.str().c_str()), _T("Complete"));
+}
+
+ll CFruitNinjaDlg::random_int(std::mt19937 &rng, ll min, ll max)
+{
+	std::uniform_int_distribution<ll> uni(min + 1, max - 1); // guaranteed unbiased
+	return uni(rng);
+}
+
+segments CFruitNinjaDlg::yes_input(int count)
+{
+	std::random_device rd;     // only used once to initialise (seed) engine
+	std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
+	segments sgmts;
+	ll x1 = 1 - range;
+	ll y1 = random_int(rng, -range, range);
+	ll x2 = range - 1;
+	ll y2 = random_int(rng, -range, range);
+	for (int i = 0; i < count; i++)
+	{
+		ll x = random_int(rng, -range, range);
+		ll cy = ((x - x1) / (double)(x1 - x2)) * (y1 - y2) + y1;
+		ll y = random_int(rng, cy + 1, range);
+		ll yb = random_int(rng, -range, cy);
+		sgmts.push_back(segment(x, y, y - yb));
+	}
+	std::random_shuffle(sgmts.begin(), sgmts.end());
+	return sgmts;
+}
+
+segments CFruitNinjaDlg::no_input(int count)
+{
+	std::random_device rd;     // only used once to initialise (seed) engine
+	std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
+	segments sgmts;
+	ll x1 = random_int(rng, 0, range);
+	ll y1 = random_int(rng, 0, range);
+	ll x2 = random_int(rng, 0, range);
+	ll y2 = random_int(rng, 0, range);
+	while (x2 == x1)
+		x2 = random_int(rng, 0, range);
+	if (x1 > x2) {
+		ll temp = x1;
+		x1 = x2;
+		x2 = x1;
+	}
+	ll yb1 = random_int(rng, 0, y1);
+	ll yb2 = random_int(rng, 0, y2);
+
+	ll x3 = random_int(rng, -range, range);
+	ll ym;
+	if (x3 < x1)
+		ym = ((x3 - x1) / (double)(x1 - x2)) * (yb1 - y2) + yb1;
+	else if (x3 > x2)
+		ym = ((x3 - x1) / (double)(x1 - x2)) * (y1 - yb2) + y1;
+	else
+		ym = ((x3 - x1) / (double)(x1 - x2)) * (yb1 - yb2) + yb1;
+	ll y3 = random_int(rng, -range, ym);
+	ll yb3 = random_int(rng, -range, y3);
+	sgmts.push_back(segment(x1, y1, y1 - yb1));
+	sgmts.push_back(segment(x2, y2, y2 - yb2));
+	sgmts.push_back(segment(x3, y3, y3 - yb3));
+	for (int i = 3; i < count; i++)
+	{
+		ll x = random_int(rng, -range, range);
+		ll y = random_int(rng, -range, range);
+		ll yb = random_int(rng, -range, y);
+		sgmts.push_back(segment(x, y, y - yb));
+	}
+
+	return sgmts;
 }
