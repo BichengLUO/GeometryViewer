@@ -641,6 +641,50 @@ void CFruitNinjaDlg::OnBnClickedCheckShowCoordinates()
 void CFruitNinjaDlg::OnBnClickedButtonImport()
 {
 	// TODO:  在此添加控件通知处理程序代码
+	CRect rect;
+	GetClientRect(&rect);
+	CFileDialog dlg(TRUE, //TRUE为OPEN对话框，FALSE为SAVE AS对话框
+		NULL,
+		NULL,
+		OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+		(LPCTSTR)_TEXT("Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"),
+		NULL);
+	if (dlg.DoModal() == IDOK)
+	{
+		sgmts.clear();
+		convex_hull.clear();
+		hull_history.clear();
+		std::ifstream input(dlg.GetPathName(), std::ifstream::in);
+
+		int sgmts_count;
+		input >> sgmts_count;
+		ll min_x = 9999999, max_x = -9999999;
+		ll min_y = 9999999, max_y = -9999999;
+
+		for (int j = 0; j < sgmts_count; j++)
+		{
+			ll x, y, yb;
+			input >> x >> y >> yb;
+			sgmts.push_back(segment(x, yb, y - yb));
+			min_x = min(x, min_x);
+			max_x = max(x, max_x);
+			min_y = min(yb, min_y);
+			max_y = max(y, max_y);
+			update_convex_hull();
+		}
+		
+		for (int i = 0; i < sgmts_count; i++)
+		{
+			sgmts[i].x = ((sgmts[i].x - min_x) / (double)(max_x - min_x)) * (rect.Width() - 340) + 20;
+			sgmts[i].y = ((sgmts[i].y - min_y) / (double)(max_y - min_y)) * (rect.Height() - 90) + 70;
+			sgmts[i].len = (sgmts[i].len / (double)(max_y - min_y)) * (rect.Height() - 90);
+		}
+		import_mode = true;
+		GetDlgItem(IDC_BUTTON_UNDO)->EnableWindow(FALSE);
+		GetDlgItem(IDC_CHECK_SHOW_COORDINATES)->EnableWindow(FALSE);
+		redraw();
+	}
+	else return;
 }
 
 
@@ -728,7 +772,7 @@ void CFruitNinjaDlg::OnBnClickedButtonGenerate()
 		{
 			input_file << count << std::endl;
 			for (auto &sgmt : input[j])
-				input_file << sgmt.x << " " << sgmt.y << " " << sgmt.y + sgmt.len << std::endl;
+				input_file << sgmt.x << " " << sgmt.y << " " << sgmt.y - sgmt.len << std::endl;
 		}
 		output_file << ynstr;
 	}
@@ -756,9 +800,8 @@ segments CFruitNinjaDlg::yes_input(int count)
 		ll cy = ((x - x1) / (double)(x1 - x2)) * (y1 - y2) + y1;
 		ll y = random_int(rng, cy + 1, range);
 		ll yb = random_int(rng, -range, cy);
-		sgmts.push_back(segment(x, y, y - yb));
+		sgmts.push_back(segment(x, yb, y - yb));
 	}
-	std::random_shuffle(sgmts.begin(), sgmts.end());
 	return sgmts;
 }
 
@@ -791,15 +834,15 @@ segments CFruitNinjaDlg::no_input(int count)
 		ym = ((x3 - x1) / (double)(x1 - x2)) * (yb1 - yb2) + yb1;
 	ll y3 = random_int(rng, -range, ym);
 	ll yb3 = random_int(rng, -range, y3);
-	sgmts.push_back(segment(x1, y1, y1 - yb1));
-	sgmts.push_back(segment(x2, y2, y2 - yb2));
-	sgmts.push_back(segment(x3, y3, y3 - yb3));
+	sgmts.push_back(segment(x1, yb1, y1 - yb1));
+	sgmts.push_back(segment(x2, yb2, y2 - yb2));
+	sgmts.push_back(segment(x3, yb3, y3 - yb3));
 	for (int i = 3; i < count; i++)
 	{
 		ll x = random_int(rng, -range, range);
 		ll y = random_int(rng, -range, range);
 		ll yb = random_int(rng, -range, y);
-		sgmts.push_back(segment(x, y, y - yb));
+		sgmts.push_back(segment(x, yb, y - yb));
 	}
 
 	return sgmts;
