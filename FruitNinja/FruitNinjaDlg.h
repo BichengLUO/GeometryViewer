@@ -91,6 +91,8 @@ public:
 	ll random_int(std::mt19937 &rng, ll min, ll max);
 	segments yes_input(int count);
 	segments no_input(int count);
+	segments degenerated_yes_input(int count);
+	segments degenerated_no_input(int count);
 
 	afx_msg void OnBnClickedButtonUndo();
 	afx_msg void OnBnClickedCheckShowCoordinates();

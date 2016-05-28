@@ -781,10 +781,26 @@ void CFruitNinjaDlg::OnBnClickedButtonGenerate()
 
 		std::vector<segments> input;
 		std::string ynstr;
-		for (int j = 0; j < yes_count; j++)
-			input.push_back(yes_input(count));
-		for (int j = 0; j < no_count; j++)
-			input.push_back(no_input(count));
+		if (((CButton*)GetDlgItem(IDC_CHECK_DEGENERATED_YES))->GetCheck())
+		{
+			for (int j = 0; j < yes_count; j++)
+				input.push_back(degenerated_yes_input(count));
+		}
+		else
+		{
+			for (int j = 0; j < yes_count; j++)
+				input.push_back(yes_input(count));
+		}
+		if (((CButton*)GetDlgItem(IDC_CHECK_DEGENERATED_NO))->GetCheck())
+		{
+			for (int j = 0; j < no_count; j++)
+				input.push_back(degenerated_no_input(count));
+		}
+		else
+		{
+			for (int j = 0; j < no_count; j++)
+				input.push_back(no_input(count));
+		}
 		std::random_shuffle(input.begin(), input.end());
 
 		LARGE_INTEGER BeginTime;
@@ -840,6 +856,30 @@ segments CFruitNinjaDlg::yes_input(int count)
 	return sgmts;
 }
 
+segments CFruitNinjaDlg::degenerated_yes_input(int count)
+{
+	std::random_device rd;     // only used once to initialise (seed) engine
+	std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
+	segments sgmts;
+	ll x1 = 1 - range;
+	ll y1 = random_int(rng, -range, range);
+	ll x2 = range - 1;
+	ll y2 = random_int(rng, -range, range);
+	for (int i = 0; i < count; i++)
+	{
+		ll x = random_int(rng, -range, range);
+		ll cy = ((x - x1) / (double)(x1 - x2)) * (y1 - y2) + y1;
+		ll y = random_int(rng, cy + 1, range);
+		ll yb = random_int(rng, -range, cy);
+		if (random_int(rng, 0, 3) == 1)
+			y = cy + 1;
+		else
+			yb = cy - 1;
+		sgmts.push_back(segment(x, yb, y - yb));
+	}
+	return sgmts;
+}
+
 segments CFruitNinjaDlg::no_input(int count)
 {
 	std::random_device rd;     // only used once to initialise (seed) engine
@@ -874,5 +914,25 @@ segments CFruitNinjaDlg::no_input(int count)
 		sgmts.push_back(segment(x, yb, y - yb));
 	}
 
+	return sgmts;
+}
+
+segments CFruitNinjaDlg::degenerated_no_input(int count)
+{
+	std::random_device rd;     // only used once to initialise (seed) engine
+	std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
+	segments sgmts;
+	ll x1 = 1 - range;
+	ll y1 = random_int(rng, -range, range);
+	ll x2 = range - 1;
+	ll y2 = random_int(rng, -range, range);
+	for (int i = 0; i < count; i++)
+	{
+		ll x = random_int(rng, -range, range);
+		ll cy = ((x - x1) / (double)(x1 - x2)) * (y1 - y2) + y1;
+		ll y = random_int(rng, cy + 1, range);
+		ll yb = random_int(rng, -range, cy);
+		sgmts.push_back(segment(x, yb, y - yb));
+	}
 	return sgmts;
 }
