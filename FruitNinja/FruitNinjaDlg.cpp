@@ -790,7 +790,7 @@ void CFruitNinjaDlg::OnBnClickedButtonGenerate()
 		{
 			input_file << count << std::endl;
 			for (auto &sgmt : input[j])
-				input_file << sgmt.x << " " << sgmt.y << " " << sgmt.y - sgmt.len << std::endl;
+				input_file << sgmt.x << " " << sgmt.y + sgmt.len << " " << sgmt.y << std::endl;
 		}
 		output_file << ynstr;
 	}
