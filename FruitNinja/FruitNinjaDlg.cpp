@@ -212,6 +212,8 @@ void CFruitNinjaDlg::OnPaint()
 		WCHAR count_title[128];
 		wsprintf(count_title, L"Size of Segments = %d", sgmts.size());
 		draw_string(pMemGraphics, count_title, 5, 5, 500, 20, &brush_black);
+		if (import_mode)
+			draw_string(pMemGraphics, L"Import Mode: [ON]", rect.Width() - 480, 5, 500, 20, &brush_red);
 		int green_sg_count = 0;
 		for (auto &seg : sgmts)
 		{
@@ -852,19 +854,13 @@ segments CFruitNinjaDlg::no_input(int count)
 	if (x1 > x2) {
 		ll temp = x1;
 		x1 = x2;
-		x2 = x1;
+		x2 = temp;
 	}
 	ll yb1 = random_int(rng, 0, y1);
 	ll yb2 = random_int(rng, 0, y2);
 
-	ll x3 = random_int(rng, -range, range);
-	ll ym;
-	if (x3 < x1)
-		ym = ((x3 - x1) / (double)(x1 - x2)) * (yb1 - y2) + yb1;
-	else if (x3 > x2)
-		ym = ((x3 - x1) / (double)(x1 - x2)) * (y1 - yb2) + y1;
-	else
-		ym = ((x3 - x1) / (double)(x1 - x2)) * (yb1 - yb2) + yb1;
+	ll x3 = random_int(rng, x1, x2);
+	ll ym = ((x3 - x1) / (double)(x1 - x2)) * (yb1 - yb2) + yb1;
 	ll y3 = random_int(rng, -range, ym);
 	ll yb3 = random_int(rng, -range, y3);
 	sgmts.push_back(segment(x1, yb1, y1 - yb1));
