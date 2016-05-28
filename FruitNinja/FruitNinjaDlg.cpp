@@ -541,6 +541,13 @@ void CFruitNinjaDlg::OnMouseMove(UINT nFlags, CPoint point)
 		in_dg = TRUE;
 		dg_point_a = -((dg_point.X - 10 - dg.X) / (double)(dg.Width - 20) * (max_x - min_x) + min_x);
 		dg_point_b = (dg_point.Y - 10 - dg.Y) / (double)(dg.Height - 20) * (max_y - min_y) + min_y;
+		if (import_mode)
+		{
+			double imp_dg_a = imp_y_a * dg_point_a / imp_x_a;
+			double imp_dg_b = imp_y_a * (dg_point_b - imp_x_b * dg_point_a / imp_x_a) + imp_y_b;
+			dg_point_a = imp_dg_a;
+			dg_point_b = imp_dg_b;
+		}
 		redraw();
 	}
 	else
@@ -588,6 +595,9 @@ void CFruitNinjaDlg::OnBnClickedButtonClear()
 #ifndef min
 #define min(a,b)  (((a) < (b)) ? (a) : (b))
 #endif
+	import_mode = false;
+	GetDlgItem(IDC_BUTTON_UNDO)->EnableWindow(TRUE);
+	GetDlgItem(IDC_CHECK_SHOW_COORDINATES)->EnableWindow(TRUE);
 	redraw();
 }
 
@@ -676,26 +686,31 @@ void CFruitNinjaDlg::OnBnClickedButtonImport()
 
 		int sgmts_count;
 		input >> sgmts_count;
-		ll minx = 9999999, maxx = -9999999;
-		ll miny = 9999999, maxy = -9999999;
+		ll imp_min_x = 9999999;
+		ll imp_max_x = -9999999;
+		ll imp_min_y = 9999999;
+		ll imp_max_y = -9999999;
 
 		for (int j = 0; j < sgmts_count; j++)
 		{
 			ll x, y, yb;
 			input >> x >> y >> yb;
 			sgmts.push_back(segment(x, yb, y - yb));
-			minx = min(x, minx);
-			maxx = max(x, maxx);
-			miny = min(yb, miny);
-			maxy = max(y, maxy);
+			imp_min_x = min(x, imp_min_x);
+			imp_max_x = max(x, imp_max_x);
+			imp_min_y = min(yb, imp_min_y);
+			imp_max_y = max(y, imp_max_y);
 			update_convex_hull();
 		}
-		
+		imp_x_a = (rect.Width() - 340 - dg.Width) / (double)(imp_max_x - imp_min_x);
+		imp_y_a = (rect.Height() - 90) / (double)(imp_max_y - imp_min_y);
+		imp_x_b = 20 - (imp_min_x / (double)(imp_max_x - imp_min_x))*(rect.Width() - 340 - dg.Width);
+		imp_y_b = 20 - (imp_min_y / (double)(imp_max_y - imp_min_y))*(rect.Height() - 90);
 		for (int i = 0; i < sgmts_count; i++)
 		{
-			sgmts[i].x = ((sgmts[i].x - minx) / (double)(maxx - minx)) * (rect.Width() - 340 - dg.Width) + 20;
-			sgmts[i].y = ((sgmts[i].y - miny) / (double)(maxy - miny)) * (rect.Height() - 90) + 20;
-			sgmts[i].len = (sgmts[i].len / (double)(maxy - miny)) * (rect.Height() - 90);
+			sgmts[i].x = imp_x_a * sgmts[i].x + imp_x_b;
+			sgmts[i].y = imp_y_a * sgmts[i].y + imp_y_b;
+			sgmts[i].len = imp_y_a * sgmts[i].len;
 		}
 		import_mode = true;
 		GetDlgItem(IDC_BUTTON_UNDO)->EnableWindow(FALSE);

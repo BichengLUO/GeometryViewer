@@ -52,6 +52,7 @@ public:
 	hull convex_hull;
 	std::vector<hull> hull_history;
 	double min_x, min_y, max_x, max_y;
+	double imp_x_a, imp_x_b, imp_y_a, imp_y_b;
 	Rect dg;
 	BOOL in_dg;
 	BOOL show_coordinates;
