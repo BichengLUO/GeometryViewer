@@ -850,7 +850,7 @@ segments CFruitNinjaDlg::yes_input(int count)
 		ll x = random_int(rng, -range, range);
 		ll cy = ((x - x1) / (double)(x1 - x2)) * (y1 - y2) + y1;
 		ll y = random_int(rng, cy + 1, range);
-		ll yb = random_int(rng, -range, cy);
+		ll yb = random_int(rng, -range, cy - 1);
 		sgmts.push_back(segment(x, yb, y - yb));
 	}
 	return sgmts;
@@ -870,7 +870,7 @@ segments CFruitNinjaDlg::degenerated_yes_input(int count)
 		ll x = random_int(rng, -range, range);
 		ll cy = ((x - x1) / (double)(x1 - x2)) * (y1 - y2) + y1;
 		ll y = random_int(rng, cy + 1, range);
-		ll yb = random_int(rng, -range, cy);
+		ll yb = random_int(rng, -range, cy - 1);
 		if (random_int(rng, 0, 3) == 1)
 			y = cy + 1;
 		else
@@ -926,13 +926,35 @@ segments CFruitNinjaDlg::degenerated_no_input(int count)
 	ll y1 = random_int(rng, -range, range);
 	ll x2 = range - 1;
 	ll y2 = random_int(rng, -range, range);
-	for (int i = 0; i < count; i++)
+	for (int i = 0; i < count - 1; i++)
 	{
 		ll x = random_int(rng, -range, range);
 		ll cy = ((x - x1) / (double)(x1 - x2)) * (y1 - y2) + y1;
 		ll y = random_int(rng, cy + 1, range);
-		ll yb = random_int(rng, -range, cy);
+		ll yb = random_int(rng, -range, cy - 1);
+		if (random_int(rng, 0, 3) == 1)
+			y = cy + 1;
+		else
+			yb = cy - 1;
 		sgmts.push_back(segment(x, yb, y - yb));
 	}
+	
+	segment s1 = sgmts[random_int(rng, -1, sgmts.size())];
+	segment s2 = sgmts[random_int(rng, -1, sgmts.size())];
+	while (s2.x == s1.x)
+		s2 = sgmts[random_int(rng, -1, sgmts.size())];
+	if (s1.x > s2.x)
+	{
+		segment temp = s1;
+		s1 = s2;
+		s2 = temp;
+	}
+
+	ll x3 = random_int(rng, s1.x, s2.x);
+	ll ym = ((x3 - s1.x) / (double)(s1.x - s2.x)) * (s1.y - s2.y) + s1.y;
+	ll y3 = random_int(rng, -range, ym);
+	ll yb3 = random_int(rng, -range, y3);
+	sgmts.push_back(segment(x3, yb3, y3 - yb3));
+	std::random_shuffle(sgmts.begin(), sgmts.end());
 	return sgmts;
 }
