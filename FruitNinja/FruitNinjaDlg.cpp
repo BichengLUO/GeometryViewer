@@ -334,8 +334,8 @@ void CFruitNinjaDlg::draw_convex_hull(Graphics* pMemGraphics, Pen *pen, Brush *b
 		{
 			double x = convex_hull[i].x;
 			double y = convex_hull[i].y;
-			pts[i].X = (x - min_x) / (double)(max_x - min_x) * (dg.Width - 20) + dg.X + 10;
-			pts[i].Y = (y - min_y) / (double)(max_y - min_y) * (dg.Height - 20) + dg.Y + 10;
+			pts[i].X = (x - min_x) / (max_x - min_x) * (dg.Width - 20) + dg.X + 10;
+			pts[i].Y = (y - min_y) / (max_y - min_y) * (dg.Height - 20) + dg.Y + 10;
 		}
 		pMemGraphics->FillPolygon(brush, pts, convex_hull.size());
 		pMemGraphics->DrawPolygon(pen, pts, convex_hull.size());
@@ -579,7 +579,7 @@ void CFruitNinjaDlg::OnBnClickedButtonClear()
 #endif
 
 	min_x = std::numeric_limits<double>::max();
-	max_x = std::numeric_limits<double>::min();
+	max_x = -std::numeric_limits<double>::max();
 	min_y = min_x, max_y = max_x;
 
 #ifndef max
@@ -613,7 +613,7 @@ void CFruitNinjaDlg::OnBnClickedButtonUndo()
 #endif
 
 		min_x = std::numeric_limits<double>::max();
-		max_x = std::numeric_limits<double>::min();
+		max_x = -std::numeric_limits<double>::max();
 		min_y = min_x, max_y = max_x;
 
 #ifndef max
@@ -654,30 +654,48 @@ void CFruitNinjaDlg::OnBnClickedButtonImport()
 		sgmts.clear();
 		convex_hull.clear();
 		hull_history.clear();
+#ifdef min
+#undef min
+#endif
+#ifdef max
+#undef max
+#endif
+
+		min_x = std::numeric_limits<double>::max();
+		max_x = -std::numeric_limits<double>::max();
+		min_y = min_x, max_y = max_x;
+
+#ifndef max
+#define max(a,b) (((a) > (b)) ? (a) : (b))
+#endif
+#ifndef min
+#define min(a,b)  (((a) < (b)) ? (a) : (b))
+#endif
+
 		std::ifstream input(dlg.GetPathName(), std::ifstream::in);
 
 		int sgmts_count;
 		input >> sgmts_count;
-		ll min_x = 9999999, max_x = -9999999;
-		ll min_y = 9999999, max_y = -9999999;
+		ll minx = 9999999, maxx = -9999999;
+		ll miny = 9999999, maxy = -9999999;
 
 		for (int j = 0; j < sgmts_count; j++)
 		{
 			ll x, y, yb;
 			input >> x >> y >> yb;
 			sgmts.push_back(segment(x, yb, y - yb));
-			min_x = min(x, min_x);
-			max_x = max(x, max_x);
-			min_y = min(yb, min_y);
-			max_y = max(y, max_y);
+			minx = min(x, minx);
+			maxx = max(x, maxx);
+			miny = min(yb, miny);
+			maxy = max(y, maxy);
 			update_convex_hull();
 		}
 		
 		for (int i = 0; i < sgmts_count; i++)
 		{
-			sgmts[i].x = ((sgmts[i].x - min_x) / (double)(max_x - min_x)) * (rect.Width() - 340) + 20;
-			sgmts[i].y = ((sgmts[i].y - min_y) / (double)(max_y - min_y)) * (rect.Height() - 90) + 70;
-			sgmts[i].len = (sgmts[i].len / (double)(max_y - min_y)) * (rect.Height() - 90);
+			sgmts[i].x = ((sgmts[i].x - minx) / (double)(maxx - minx)) * (rect.Width() - 340 - dg.Width) + 20;
+			sgmts[i].y = ((sgmts[i].y - miny) / (double)(maxy - miny)) * (rect.Height() - 90) + 20;
+			sgmts[i].len = (sgmts[i].len / (double)(maxy - miny)) * (rect.Height() - 90);
 		}
 		import_mode = true;
 		GetDlgItem(IDC_BUTTON_UNDO)->EnableWindow(FALSE);
