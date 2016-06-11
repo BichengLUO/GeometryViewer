@@ -16,12 +16,86 @@ typedef struct _point2d
 	_point2d(ll xp, ll yp) : x(xp), y(yp) {}
 } point2d;
 
+class rat
+{
+private:
+	ll gcd(ll u, ll v) {
+		while (v != 0) {
+			ll r = u % v;
+			u = v;
+			v = r;
+		}
+		return u;
+	}
+	void reduce()
+	{
+		ll g = gcd(abs(x), abs(y));
+		x /= g;
+		y /= g;
+	}
+public:
+	ll x;
+	ll y;
+	rat() : x(0), y(1) {}
+	rat(ll xp) : x(xp), y(1) {}
+	rat(ll xp, ll yp) : x(xp), y(yp)
+	{
+		if (x == 0)
+			y = 1;
+		else
+		{
+			if (y < 0)
+			{
+				y = -y;
+				x = -x;
+			}
+			reduce();
+		}
+	}
+	rat operator- (const rat &o) const
+	{
+		return rat(x * o.y - y * o.x, y * o.y);
+	}
+	rat operator+ (const rat &o) const
+	{
+		return rat(x * o.y + y * o.x, y * o.y);
+	}
+	rat operator* (const rat &o) const
+	{
+		return rat(x * o.x, y * o.y);
+	}
+	rat operator/ (const rat &o) const
+	{
+		return rat(x * o.y, y * o.x);
+	}
+	bool operator< (const rat &o) const
+	{
+		return x * o.y < y * o.x;
+	}
+	bool operator<= (const rat &o) const
+	{
+		return x * o.y <= y * o.x;
+	}
+	bool operator>= (const rat &o) const
+	{
+		return x * o.y >= y * o.x;
+	}
+	bool operator!= (const rat &o) const
+	{
+		return x != o.x || y != o.y;
+	}
+	double to_double() const
+	{
+		return x / (double)y;
+	}
+};
+
 typedef struct _point2df
 {
-	double x;
-	double y;
-	_point2df() : x(0), y(0) {}
-	_point2df(double xp, double yp) : x(xp), y(yp) {}
+	rat x;
+	rat y;
+	_point2df() : x(), y() {}
+	_point2df(rat xp, rat yp) : x(xp), y(yp) {}
 } point2df;
 
 typedef struct _segment
@@ -83,10 +157,10 @@ public:
 
 	char gen_convex_hull_sgmts(const segments &input);
 	void update_convex_hull();
-	void intersect(double x1, double y1, double x2, double y2, double *x, double *y);
-	bool is_intersect(point2df p1, point2df p2, double a, double b);
-	void intersect(point2df p1, point2df p2, double a, double b, double *x, double *y);
-	hull cut_convex_hull(const hull &ch, double a, double b, bool top);
+	void intersect(rat x1, rat y1, rat x2, rat y2, rat *x, rat *y);
+	bool is_intersect(point2df p1, point2df p2, rat a, rat b);
+	void intersect(point2df p1, point2df p2, rat a, rat b, rat *x, rat *y);
+	hull cut_convex_hull(const hull &ch, rat a, rat b, bool top);
 
 	ll random_int(std::mt19937 &rng, ll min, ll max);
 	segments yes_input(int count);

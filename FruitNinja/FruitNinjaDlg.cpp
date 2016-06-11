@@ -321,8 +321,8 @@ void CFruitNinjaDlg::draw_convex_hull(Graphics* pMemGraphics, Pen *pen, Brush *b
 		Point *pts = new Point[hull_history[i].size()];
 		for (int j = 0; j < hull_history[i].size(); j++)
 		{
-			double x = hull_history[i][j].x;
-			double y = hull_history[i][j].y;
+			double x = hull_history[i][j].x.to_double();
+			double y = hull_history[i][j].y.to_double();
 			pts[j].X = (x - min_x) / (max_x - min_x) * (dg.Width - 20) + dg.X + 10;
 			pts[j].Y = (y - min_y) / (max_y - min_y) * (dg.Height - 20) + dg.Y + 10;
 		}
@@ -334,8 +334,8 @@ void CFruitNinjaDlg::draw_convex_hull(Graphics* pMemGraphics, Pen *pen, Brush *b
 		Point *pts = new Point[convex_hull.size()];
 		for (int i = 0; i < convex_hull.size(); i++)
 		{
-			double x = convex_hull[i].x;
-			double y = convex_hull[i].y;
+			double x = convex_hull[i].x.to_double();
+			double y = convex_hull[i].y.to_double();
 			pts[i].X = (x - min_x) / (max_x - min_x) * (dg.Width - 20) + dg.X + 10;
 			pts[i].Y = (y - min_y) / (max_y - min_y) * (dg.Height - 20) + dg.Y + 10;
 		}
@@ -411,13 +411,13 @@ char CFruitNinjaDlg::gen_convex_hull_sgmts(const segments &input)
 	ll y2 = input[1].y;
 	ll len2 = input[1].len;
 
-	double xx1, yy1;
+	rat xx1, yy1;
 	intersect(x1, y1, x2, y2, &xx1, &yy1);
-	double xx2, yy2;
+	rat xx2, yy2;
 	intersect(x1, y1, x2, y2 + len2, &xx2, &yy2);
-	double xx3, yy3;
+	rat xx3, yy3;
 	intersect(x1, y1 + len1, x2, y2 + len2, &xx3, &yy3);
-	double xx4, yy4;
+	rat xx4, yy4;
 	intersect(x1, y1 + len1, x2, y2, &xx4, &yy4);
 
 	ch.push_back(point2df(xx1, yy1));
@@ -448,13 +448,13 @@ void CFruitNinjaDlg::update_convex_hull()
 		ll y2 = sgmts[1].y;
 		ll len2 = sgmts[1].len;
 
-		double xx1, yy1;
+		rat xx1, yy1;
 		intersect(x1, y1, x2, y2, &xx1, &yy1);
-		double xx2, yy2;
+		rat xx2, yy2;
 		intersect(x1, y1, x2, y2 + len2, &xx2, &yy2);
-		double xx3, yy3;
+		rat xx3, yy3;
 		intersect(x1, y1 + len1, x2, y2 + len2, &xx3, &yy3);
-		double xx4, yy4;
+		rat xx4, yy4;
 		intersect(x1, y1 + len1, x2, y2, &xx4, &yy4);
 
 		convex_hull.push_back(point2df(xx1, yy1));
@@ -464,8 +464,8 @@ void CFruitNinjaDlg::update_convex_hull()
 
 		for (int i = 0; i < convex_hull.size(); i++)
 		{
-			double x = convex_hull[i].x;
-			double y = convex_hull[i].y;
+			double x = convex_hull[i].x.to_double();
+			double y = convex_hull[i].y.to_double();
 			min_x = min(min_x, x);
 			max_x = max(max_x, x);
 			min_y = min(min_y, y);
@@ -485,42 +485,66 @@ void CFruitNinjaDlg::update_convex_hull()
 	}
 }
 
-void CFruitNinjaDlg::intersect(double x1, double y1, double x2, double y2, double *x, double *y)
+void CFruitNinjaDlg::intersect(rat x1, rat y1, rat x2, rat y2, rat *x, rat *y)
 {
 	*x = (y2 - y1) / (x1 - x2);
 	*y = (x1 * y2 - x2 * y1) / (x1 - x2);
 }
 
-hull CFruitNinjaDlg::cut_convex_hull(const hull &ch, double a, double b, bool top)
+hull CFruitNinjaDlg::cut_convex_hull(const hull &ch, rat a, rat b, bool top)
 {
 	hull new_convex_hull;
-	for (int i = 0; i < ch.size(); i++)
+	if (ch.size() == 1)
 	{
-		point2df p1 = ch[i];
-		point2df p2 = ch[(i + 1) % ch.size()];
+		point2df p1 = ch[0];
+		if ((top && a * p1.x + b >= p1.y) || (!top && a * p1.x + b <= p1.y))
+			new_convex_hull.push_back(p1);
+	}
+	else if (ch.size() == 2)
+	{
+		point2df p1 = ch[0];
+		point2df p2 = ch[1];
 		if ((top && a * p1.x + b >= p1.y) || (!top && a * p1.x + b <= p1.y))
 			new_convex_hull.push_back(p1);
 		if (is_intersect(p1, p2, a, b))
 		{
-			double x, y;
+			rat x, y;
 			intersect(p1, p2, a, b, &x, &y);
 			new_convex_hull.push_back(point2df(x, y));
+		}
+		if ((top && a * p2.x + b >= p2.y) || (!top && a * p2.x + b <= p2.y))
+			new_convex_hull.push_back(p2);
+	}
+	else
+	{
+		for (int i = 0; i < ch.size(); i++)
+		{
+			point2df p1 = ch[i];
+			point2df p2 = ch[(i + 1) % ch.size()];
+			if ((top && a * p1.x + b >= p1.y) || (!top && a * p1.x + b <= p1.y))
+				new_convex_hull.push_back(p1);
+			if (is_intersect(p1, p2, a, b))
+			{
+				rat x, y;
+				intersect(p1, p2, a, b, &x, &y);
+				new_convex_hull.push_back(point2df(x, y));
+			}
 		}
 	}
 	return new_convex_hull;
 }
 
-bool CFruitNinjaDlg::is_intersect(point2df p1, point2df p2, double a, double b)
+bool CFruitNinjaDlg::is_intersect(point2df p1, point2df p2, rat a, rat b)
 {
-	double y_diff1 = a * p1.x + b - p1.y;
-	double y_diff2 = a * p2.x + b - p2.y;
-	return y_diff1 * y_diff2 <= 0 && y_diff2 != 0;
+	rat y_diff1 = a * p1.x + b - p1.y;
+	rat y_diff2 = a * p2.x + b - p2.y;
+	return y_diff1 * y_diff2 < 0;
 }
 
-void CFruitNinjaDlg::intersect(point2df p1, point2df p2, double a, double b, double *x, double *y)
+void CFruitNinjaDlg::intersect(point2df p1, point2df p2, rat a, rat b, rat *x, rat *y)
 {
-	double a2 = (p1.y - p2.y) / (p1.x - p2.x);
-	double b2 = (p1.x * p2.y - p2.x * p1.y) / (p1.x - p2.x);
+	rat a2 = (p1.y - p2.y) / (p1.x - p2.x);
+	rat b2 = (p1.x * p2.y - p2.x * p1.y) / (p1.x - p2.x);
 	intersect(a, b, a2, b2, x, y);
 }
 
