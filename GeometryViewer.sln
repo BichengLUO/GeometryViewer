@@ -23,6 +23,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GreatWall", "GreatWall\Grea
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FruitNinja", "FruitNinja\FruitNinja.vcxproj", "{416CCEF3-BB60-4FE9-B3B5-AB23107D1541}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RangeQueryViewer", "RangeQueryViewer\RangeQueryViewer.vcxproj", "{C1D7F2F1-76F0-48E8-A16A-E29E2803641D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -69,6 +71,10 @@ Global
 		{416CCEF3-BB60-4FE9-B3B5-AB23107D1541}.Debug|Win32.Build.0 = Debug|Win32
 		{416CCEF3-BB60-4FE9-B3B5-AB23107D1541}.Release|Win32.ActiveCfg = Release|Win32
 		{416CCEF3-BB60-4FE9-B3B5-AB23107D1541}.Release|Win32.Build.0 = Release|Win32
+		{C1D7F2F1-76F0-48E8-A16A-E29E2803641D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C1D7F2F1-76F0-48E8-A16A-E29E2803641D}.Debug|Win32.Build.0 = Debug|Win32
+		{C1D7F2F1-76F0-48E8-A16A-E29E2803641D}.Release|Win32.ActiveCfg = Release|Win32
+		{C1D7F2F1-76F0-48E8-A16A-E29E2803641D}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
