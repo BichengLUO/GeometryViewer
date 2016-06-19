@@ -138,6 +138,12 @@ BOOL CFruitNinjaDlg::OnInitDialog()
 	GetDlgItem(IDC_EDIT_RANGE)->SetWindowText(_T("1000000"));
 	GetDlgItem(IDC_EDIT_YES_COUNT)->SetWindowText(_T("3"));
 	GetDlgItem(IDC_EDIT_NO_COUNT)->SetWindowText(_T("2"));
+#ifdef SINGLE_CASE
+	SetWindowText(_T("Fruit Ninja (SINGLE CASE)"));
+	GetDlgItem(IDC_EDIT_YES_COUNT)->EnableWindow(FALSE);
+	GetDlgItem(IDC_EDIT_NO_COUNT)->EnableWindow(FALSE);
+	GetDlgItem(IDC_CHECK_DEGENERATED_NO)->EnableWindow(FALSE);
+#endif
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
@@ -215,11 +221,11 @@ void CFruitNinjaDlg::OnPaint()
 		if (import_mode)
 			draw_string(pMemGraphics, L"Import Mode: [ON]", rect.Width() - 480, 5, 500, 20, &brush_red);
 		int green_sg_count = 0;
-		for (auto &seg : sgmts)
+		for (int i = 0; i < sgmts.size(); i++)
 		{
-			int x = seg.x;
-			int y = seg.y;
-			int len = seg.len;
+			int x = sgmts[i].x;
+			int y = sgmts[i].y;
+			int len = sgmts[i].len;
 			if (len > 0)
 			{
 				if (in_dg && dg_point_a * x + dg_point_b >= y && dg_point_a * x + dg_point_b <= y + len)
@@ -234,19 +240,38 @@ void CFruitNinjaDlg::OnPaint()
 				if (show_coordinates)
 				{
 					WCHAR pt_title[128];
+#ifdef SINGLE_CASE
+					wsprintf(pt_title, L"%d:(%d,%d)", 2 * i, x, y);
+					if (in_dg && dg_point_a * x + dg_point_b >= y && dg_point_a * x + dg_point_b <= y + len)
+						pMemGraphics->FillRectangle(&brush_green_alpha, x + 5, y + 10, 100, 20);
+					else
+						pMemGraphics->FillRectangle(&brush_black_alpha, x + 5, y + 10, 100, 20);
+					draw_string(pMemGraphics, pt_title, x + 10, y + 10, 100, 20, &brush_white);
+#else
 					wsprintf(pt_title, L"(%d,%d)", x, y);
 					if (in_dg && dg_point_a * x + dg_point_b >= y && dg_point_a * x + dg_point_b <= y + len)
 						pMemGraphics->FillRectangle(&brush_green_alpha, x + 5, y + 10, 70, 20);
 					else
 						pMemGraphics->FillRectangle(&brush_black_alpha, x + 5, y + 10, 70, 20);
 					draw_string(pMemGraphics, pt_title, x + 10, y + 10, 70, 20, &brush_white);
+#endif
+					
 
+#ifdef SINGLE_CASE
+					wsprintf(pt_title, L"%d:(%d,%d)", 2 * i + 1, x, y + len);
+					if (in_dg && dg_point_a * x + dg_point_b >= y && dg_point_a * x + dg_point_b <= y + len)
+						pMemGraphics->FillRectangle(&brush_green_alpha, x + 5, y + len + 10, 100, 20);
+					else
+						pMemGraphics->FillRectangle(&brush_black_alpha, x + 5, y + len + 10, 100, 20);
+					draw_string(pMemGraphics, pt_title, x + 10, y + len + 10, 100, 20, &brush_white);
+#else
 					wsprintf(pt_title, L"(%d,%d)", x, y + len);
 					if (in_dg && dg_point_a * x + dg_point_b >= y && dg_point_a * x + dg_point_b <= y + len)
 						pMemGraphics->FillRectangle(&brush_green_alpha, x + 5, y + len + 10, 70, 20);
 					else
 						pMemGraphics->FillRectangle(&brush_black_alpha, x + 5, y + len + 10, 70, 20);
 					draw_string(pMemGraphics, pt_title, x + 10, y + len + 10, 70, 20, &brush_white);
+#endif
 				}
 			}
 			else
@@ -345,6 +370,11 @@ void CFruitNinjaDlg::draw_convex_hull(Graphics* pMemGraphics, Pen *pen, Brush *b
 		{
 			pMemGraphics->FillEllipse(&brush_brown, pts[i].X - 3, pts[i].Y - 3, 6, 6);
 			pMemGraphics->DrawEllipse(pen, pts[i].X - 3, pts[i].Y - 3, 6, 6);
+#ifdef SINGLE_CASE
+			WCHAR pt_title[128];
+			wsprintf(pt_title, L"(%d, %d)", convex_hull[i].pt_id1, convex_hull[i].pt_id2);
+			draw_string(pMemGraphics, pt_title, pts[i].X, pts[i].Y, 100, 30, &brush_black);
+#endif
 		}
 		delete[] pts;
 	}
@@ -420,10 +450,10 @@ char CFruitNinjaDlg::gen_convex_hull_sgmts(const segments &input)
 	double xx4, yy4;
 	intersect(x1, y1 + len1, x2, y2, &xx4, &yy4);
 
-	ch.push_back(point2df(xx1, yy1));
-	ch.push_back(point2df(xx2, yy2));
-	ch.push_back(point2df(xx3, yy3));
-	ch.push_back(point2df(xx4, yy4));
+	ch.push_back(point2df(xx1, yy1, 0, 2));
+	ch.push_back(point2df(xx2, yy2, 0, 3));
+	ch.push_back(point2df(xx3, yy3, 1, 3));
+	ch.push_back(point2df(xx4, yy4, 1, 2));
 
 	for (int i = 2; i < input.size(); i++)
 	{
@@ -431,10 +461,72 @@ char CFruitNinjaDlg::gen_convex_hull_sgmts(const segments &input)
 		ll y = input[i].y;
 		ll len = input[i].len;
 
-		hull nch = cut_convex_hull(ch, x, y, false);
-		ch = cut_convex_hull(nch, x, y + len, true);
+		hull nch = cut_convex_hull(ch, x, y, 2 * i, false);
+		ch = cut_convex_hull(nch, x, y + len, 2 * i + 1, true);
 	}
 	return ch.size() > 0 ? 'Y' : 'N';
+}
+
+bool CFruitNinjaDlg::gen_convex_hull_line(const segments &input, point2d *p1, point2d *p2)
+{
+	if (input.size() <= 2)
+	{
+		p1->x = input[0].x;
+		p1->y = input[0].y;
+		p2->x = input[1].x;
+		p2->y = input[1].y;
+		return true;
+	}
+
+	hull ch;
+	ll x1 = input[0].x;
+	ll y1 = input[0].y;
+	ll len1 = input[0].len;
+	ll x2 = input[1].x;
+	ll y2 = input[1].y;
+	ll len2 = input[1].len;
+
+	double xx1, yy1;
+	intersect(x1, y1, x2, y2, &xx1, &yy1);
+	double xx2, yy2;
+	intersect(x1, y1, x2, y2 + len2, &xx2, &yy2);
+	double xx3, yy3;
+	intersect(x1, y1 + len1, x2, y2 + len2, &xx3, &yy3);
+	double xx4, yy4;
+	intersect(x1, y1 + len1, x2, y2, &xx4, &yy4);
+
+	ch.push_back(point2df(xx1, yy1, 0, 2));
+	ch.push_back(point2df(xx2, yy2, 0, 3));
+	ch.push_back(point2df(xx3, yy3, 1, 3));
+	ch.push_back(point2df(xx4, yy4, 1, 2));
+
+	for (int i = 2; i < input.size(); i++)
+	{
+		ll x = input[i].x;
+		ll y = input[i].y;
+		ll len = input[i].len;
+
+		hull nch = cut_convex_hull(ch, x, y, 2 * i, false);
+		ch = cut_convex_hull(nch, x, y + len, 2 * i + 1, true);
+	}
+	if (ch.size() > 0)
+	{
+		int pt_id1 = ch[0].pt_id1;
+		int pt_id2 = ch[0].pt_id2;
+
+		p1->x = input[pt_id1 / 2].x;
+		if (pt_id1 % 2 == 0)
+			p1->y = input[pt_id1 / 2].y;
+		else
+			p1->y = input[pt_id1 / 2].y + input[pt_id1 / 2].len;
+		p2->x = input[pt_id2 / 2].x;
+		if (pt_id2 % 2 == 0)
+			p2->y = input[pt_id2 / 2].y;
+		else
+			p2->y = input[pt_id2 / 2].y + input[pt_id2 / 2].len;
+		return true;
+	}
+	else return false;
 }
 
 void CFruitNinjaDlg::update_convex_hull()
@@ -457,10 +549,10 @@ void CFruitNinjaDlg::update_convex_hull()
 		double xx4, yy4;
 		intersect(x1, y1 + len1, x2, y2, &xx4, &yy4);
 
-		convex_hull.push_back(point2df(xx1, yy1));
-		convex_hull.push_back(point2df(xx2, yy2));
-		convex_hull.push_back(point2df(xx3, yy3));
-		convex_hull.push_back(point2df(xx4, yy4));
+		convex_hull.push_back(point2df(xx1, yy1, 0, 2));
+		convex_hull.push_back(point2df(xx2, yy2, 0, 3));
+		convex_hull.push_back(point2df(xx3, yy3, 1, 3));
+		convex_hull.push_back(point2df(xx4, yy4, 1, 2));
 
 		for (int i = 0; i < convex_hull.size(); i++)
 		{
@@ -478,8 +570,8 @@ void CFruitNinjaDlg::update_convex_hull()
 		ll y = sgmts.end()[-1].y;
 		ll len = sgmts.end()[-1].len;
 
-		hull new_convex_hull = cut_convex_hull(convex_hull, x, y, false);
-		new_convex_hull = cut_convex_hull(new_convex_hull, x, y + len, true);
+		hull new_convex_hull = cut_convex_hull(convex_hull, x, y, sgmts.size() * 2 - 2, false);
+		new_convex_hull = cut_convex_hull(new_convex_hull, x, y + len, sgmts.size() * 2 - 1, true);
 		hull_history.push_back(convex_hull);
 		convex_hull = new_convex_hull;
 	}
@@ -491,7 +583,7 @@ void CFruitNinjaDlg::intersect(double x1, double y1, double x2, double y2, doubl
 	*y = (x1 * y2 - x2 * y1) / (x1 - x2);
 }
 
-hull CFruitNinjaDlg::cut_convex_hull(const hull &ch, double a, double b, bool top)
+hull CFruitNinjaDlg::cut_convex_hull(const hull &ch, double a, double b, int cut_pid, bool top)
 {
 	hull new_convex_hull;
 	if (ch.size() == 1)
@@ -510,7 +602,7 @@ hull CFruitNinjaDlg::cut_convex_hull(const hull &ch, double a, double b, bool to
 		{
 			double x, y;
 			intersect(p1, p2, a, b, &x, &y);
-			new_convex_hull.push_back(point2df(x, y));
+			new_convex_hull.push_back(point2df(x, y, cut_pid, p1.common_pt_id(p2)));
 		}
 		if ((top && a * p2.x + b >= p2.y) || (!top && a * p2.x + b <= p2.y))
 			new_convex_hull.push_back(p2);
@@ -527,7 +619,7 @@ hull CFruitNinjaDlg::cut_convex_hull(const hull &ch, double a, double b, bool to
 			{
 				double x, y;
 				intersect(p1, p2, a, b, &x, &y);
-				new_convex_hull.push_back(point2df(x, y));
+				new_convex_hull.push_back(point2df(x, y, cut_pid, p1.common_pt_id(p2)));
 			}
 		}
 	}
@@ -803,6 +895,13 @@ void CFruitNinjaDlg::OnBnClickedButtonGenerate()
 		char output_name_str[128];
 		sprintf(output_name_str, "data/%d.out", name);
 
+#ifdef SINGLE_CASE
+		segments input;
+		if (((CButton*)GetDlgItem(IDC_CHECK_DEGENERATED_YES))->GetCheck())
+			input = degenerated_yes_input(count);
+		else
+			input = yes_input(count);
+#else
 		std::vector<segments> input;
 		std::string ynstr;
 		if (((CButton*)GetDlgItem(IDC_CHECK_DEGENERATED_YES))->GetCheck())
@@ -826,6 +925,7 @@ void CFruitNinjaDlg::OnBnClickedButtonGenerate()
 				input.push_back(no_input(count));
 		}
 		std::random_shuffle(input.begin(), input.end());
+#endif
 
 		LARGE_INTEGER BeginTime;
 		LARGE_INTEGER EndTime;
@@ -833,15 +933,33 @@ void CFruitNinjaDlg::OnBnClickedButtonGenerate()
 
 		QueryPerformanceFrequency(&Frequency);
 		QueryPerformanceCounter(&BeginTime);
+#ifdef SINGLE_CASE
+		point2d p1, p2;
+		bool found = gen_convex_hull_line(input, &p1, &p2);
+#else
 		for (int j = 0; j < yes_count + no_count; j++)
 			ynstr += gen_convex_hull_sgmts(input[j]);
+#endif
 		QueryPerformanceCounter(&EndTime);
 		float tm = (float)(EndTime.QuadPart - BeginTime.QuadPart) / Frequency.QuadPart;
-		oss << "(" << i + 1 << ") " << name << ".in [size: " << count << "] --> " << name << ".out [" << ynstr << "] Time: " << tm << "s\n";
+#ifdef SINGLE_CASE
+
+		oss << "(" << i + 1 << ") " << name << ".in [size: " << count << "] --> " << name << ".out ["
+			<< (check_answer(input, p1, p2) ? "CORRECT" : "WRONG") << "] Time: " << tm << "s\n";
+#else
+		oss << "(" << i + 1 << ") " << name << ".in [size: " << count << "] --> " << name << ".out ["
+			<< ynstr << "] Time: " << tm << "s\n";
+#endif
 
 		std::ofstream input_file(input_name_str, std::ofstream::out);
 		std::ofstream output_file(output_name_str, std::ofstream::out);
 
+#ifdef SINGLE_CASE
+		input_file << count << std::endl;
+		for (auto &sgmt : input)
+			input_file << sgmt.x << " " << sgmt.y + sgmt.len << " " << sgmt.y << std::endl;
+		output_file << p1.x << " " << p1.y << " " << p2.x << " " << p2.y;
+#else
 		input_file << yes_count + no_count << std::endl;
 		for (int j = 0; j < yes_count + no_count; j++)
 		{
@@ -850,6 +968,7 @@ void CFruitNinjaDlg::OnBnClickedButtonGenerate()
 				input_file << sgmt.x << " " << sgmt.y + sgmt.len << " " << sgmt.y << std::endl;
 		}
 		output_file << ynstr;
+#endif
 	}
 	MessageBox(CA2CT(oss.str().c_str()), _T("Complete"));
 }
@@ -981,4 +1100,17 @@ segments CFruitNinjaDlg::degenerated_no_input(int count)
 	sgmts.push_back(segment(x3, yb3, y3 - yb3));
 	std::random_shuffle(sgmts.begin(), sgmts.end());
 	return sgmts;
+}
+
+bool CFruitNinjaDlg::check_answer(const segments &segs, const point2d &p1, const point2d &p2)
+{
+	for (auto seg : segs)
+	{
+		ll a = (seg.x - p2.x) * (p1.y - p2.y) + p2.y * (p1.x - p2.x);
+		ll b = (p1.x - p2.x) * seg.y;
+		ll c = (p1.x - p2.x) * (seg.y + seg.len);
+		if ((a > b || a < c) && (a > c || a < b))
+			return false;
+	}
+	return true;
 }

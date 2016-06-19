@@ -5,6 +5,7 @@
 #pragma once
 #include <vector>
 #include <random>
+#include <iostream>
 
 typedef long long ll;
 
@@ -20,8 +21,15 @@ typedef struct _point2df
 {
 	double x;
 	double y;
-	_point2df() : x(0), y(0) {}
-	_point2df(double xp, double yp) : x(xp), y(yp) {}
+	int pt_id1;
+	int pt_id2;
+	_point2df(double xp, double yp, int pid1, int pid2) : x(xp), y(yp), pt_id1(pid1), pt_id2(pid2) {}
+	int common_pt_id(const _point2df &o) const
+	{
+		if (pt_id1 == o.pt_id1 || pt_id1 == o.pt_id2) return pt_id1;
+		if (pt_id2 == o.pt_id1 || pt_id2 == o.pt_id2) return pt_id2;
+		return -1;
+	}
 } point2df;
 
 typedef struct _segment
@@ -82,17 +90,19 @@ public:
 	void draw_convex_hull(Graphics* pMemGraphics, Pen *pen, Brush *brush);
 
 	char gen_convex_hull_sgmts(const segments &input);
+	bool gen_convex_hull_line(const segments &input, point2d *p1, point2d *p2);
 	void update_convex_hull();
 	void intersect(double x1, double y1, double x2, double y2, double *x, double *y);
 	bool is_intersect(point2df p1, point2df p2, double a, double b);
 	void intersect(point2df p1, point2df p2, double a, double b, double *x, double *y);
-	hull cut_convex_hull(const hull &ch, double a, double b, bool top);
+	hull cut_convex_hull(const hull &ch, double a, double b, int cut_pid, bool top);
 
 	ll random_int(std::mt19937 &rng, ll min, ll max);
 	segments yes_input(int count);
 	segments no_input(int count);
 	segments degenerated_yes_input(int count);
 	segments degenerated_no_input(int count);
+	bool check_answer(const segments &segs, const point2d &p1, const point2d &p2);
 
 	afx_msg void OnBnClickedButtonUndo();
 	afx_msg void OnBnClickedCheckShowCoordinates();
